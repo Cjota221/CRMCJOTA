@@ -477,6 +477,9 @@
                 content: attr(data-label); font-weight: 500; color: var(--secondary-color);
                 margin-right: 1rem;
             }
+             #clients-table td:first-child {
+                border-bottom: none;
+            }
         }
     </style>
 </head>
@@ -645,7 +648,8 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <button id="create-group-btn" class="button" disabled>Criar Grupo</button>
+                            <button id="create-group-btn" class="button" disabled>Criar Grupo com Filtro</button>
+                             <button id="create-group-selection-btn" class="button" style="display: none;"></button>
                             <button id="export-clients-email-btn" class="button button-secondary" disabled>Exportar com E-mail</button>
                             <button id="filter-today-birthday-btn" class="button button-secondary">Aniversariantes de Hoje</button>
                         </div>
@@ -655,6 +659,7 @@
                             <table id="clients-table">
                                 <thead>
                                     <tr>
+                                        <th><input type="checkbox" id="select-all-clients" title="Selecionar todos na página"></th>
                                         <th></th>
                                         <th>Nome</th>
                                         <th>WhatsApp</th>
@@ -755,7 +760,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Estado da Aplicação ---
-            const state = { clients: [], groups: [], importHistory: [], filteredClients: [], currentPage: 1, rowsPerPage: 100, currentGroupIdToExport: null, contextClient: null, currentClientInModal: null };
+            const state = { clients: [], groups: [], importHistory: [], filteredClients: [], currentPage: 1, rowsPerPage: 100, currentGroupIdToExport: null, contextClient: null, currentClientInModal: null, selectedClientIds: new Set() };
 
             // --- Seletores de DOM ---
             const app = document.getElementById('app');
@@ -787,8 +792,10 @@
             const filterLastPurchaseYearEl = document.getElementById('filter-last-purchase-year');
             const applyFiltersBtn = document.getElementById('apply-filters');
             const createGroupBtn = document.getElementById('create-group-btn');
+            const createGroupSelectionBtn = document.getElementById('create-group-selection-btn');
             const exportClientsEmailBtn = document.getElementById('export-clients-email-btn');
             const filterTodayBirthdayBtn = document.getElementById('filter-today-birthday-btn');
+            const selectAllClientsCheckbox = document.getElementById('select-all-clients');
             const groupListEl = document.getElementById('group-list');
             const inactivityReportGrid = document.getElementById('inactivity-report-grid');
             const modals = {
@@ -834,6 +841,7 @@
                 renderDashboard();
                 renderInactivityReport();
                 renderImportHistory();
+                updateSelectionUI();
             };
 
             const navigateTo = (viewName) => {
@@ -993,8 +1001,7 @@
                     if (!phone) return '';
                     let cleanPhone = phone.replace(/\D/g, '');
                     if (cleanPhone.startsWith('55') && cleanPhone.length > 11) {
-                         // Mantém o 55 se já tiver, mas garante que não haja mais de um
-                        return cleanPhone;
+                         return cleanPhone;
                     }
                     return cleanPhone;
                 };
@@ -1044,7 +1051,7 @@
             const renderClientsTable = () => {
                 clientsTableBody.innerHTML = '';
                 if (state.filteredClients.length === 0) {
-                     clientsTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum cliente encontrado.</td></tr>';
+                     clientsTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum cliente encontrado.</td></tr>';
                      renderPagination();
                      return;
                 }
@@ -1055,7 +1062,8 @@
                     const lastPurchaseDate = new Date(client.dataUltimaCompra);
                     const birthDate = client.dataNascimento ? new Date(client.dataNascimento) : null;
                     row.innerHTML = `
-                        <td data-label=""><span class="favorite-star ${client.isFavorite ? 'favorited' : ''}" data-client-id="${client.id}">&#9733;</span></td>
+                        <td data-label=""><input type="checkbox" class="client-checkbox" data-client-id="${client.id}" ${state.selectedClientIds.has(client.id) ? 'checked' : ''}></td>
+                        <td data-label="Favorito"><span class="favorite-star ${client.isFavorite ? 'favorited' : ''}" data-client-id="${client.id}">&#9733;</span></td>
                         <td data-label="Nome">${client.nome}</td>
                         <td data-label="WhatsApp">${client.whatsapp}</td>
                         <td data-label="Localização">${client.cidade || 'N/A'}, ${client.estado || 'N/A'}</td>
@@ -1200,10 +1208,24 @@
             const saveGroup = () => {
                 const name = groupNameInput.value.trim();
                 if (!name) return showNotification('Por favor, dê um nome ao grupo.', 'error');
-                const newGroup = { id: Date.now(), name, clientIds: state.filteredClients.map(c => c.id) };
+                
+                const clientIdsToSave = state.selectedClientIds.size > 0 
+                    ? Array.from(state.selectedClientIds) 
+                    : state.filteredClients.map(c => c.id);
+
+                if (clientIdsToSave.length === 0) {
+                    return showNotification('Nenhum cliente para adicionar ao grupo.', 'error');
+                }
+
+                const newGroup = { id: Date.now(), name, clientIds: clientIdsToSave };
+                
                 state.groups.push(newGroup);
                 saveDataToLocalStorage();
-                renderGroups();
+                
+                state.selectedClientIds.clear();
+                selectAllClientsCheckbox.checked = false;
+                
+                renderAll();
                 closeModal('createGroup');
                 navigateTo('groups');
                 showNotification('Grupo criado com sucesso!');
@@ -1234,6 +1256,7 @@
                 const client = state.clients.find(c => c.id === clientId);
                 const notesList = document.getElementById('client-detail-notes-list');
                 notesList.innerHTML = '';
+                document.getElementById('client-note-input').value = '';
 
                 if (client && client.notes && client.notes.length > 0) {
                     [...client.notes].reverse().forEach(note => {
@@ -1350,6 +1373,20 @@
                 if (client) { client.isFavorite = !client.isFavorite; saveDataToLocalStorage(); renderClientsTable(); }
             };
 
+             const updateSelectionUI = () => {
+                const count = state.selectedClientIds.size;
+                if (count > 0) {
+                    createGroupBtn.style.display = 'none';
+                    createGroupSelectionBtn.style.display = 'inline-flex';
+                    createGroupSelectionBtn.textContent = `Criar Grupo com ${count} Selecionado(s)`;
+                } else {
+                    createGroupBtn.style.display = 'inline-flex';
+                    createGroupSelectionBtn.style.display = 'none';
+                    createGroupBtn.disabled = state.filteredClients.length === 0;
+                }
+            };
+
+
             // --- Dashboard & Relatórios ---
             const renderDashboard = () => {
                 const ninetyDaysAgo = new Date().setDate(new Date().getDate() - 90);
@@ -1430,8 +1467,24 @@
                 syncDataBtn.addEventListener('click', syncAllData);
                 exportClientsEmailBtn.addEventListener('click', exportFilteredClientsToCSV);
                 filterTodayBirthdayBtn.addEventListener('click', filterTodayBirthdays);
-                createGroupBtn.addEventListener('click', () => { groupNameInput.value = ''; groupClientCountEl.textContent = state.filteredClients.length; openModal('createGroup'); });
+                
+                createGroupBtn.addEventListener('click', () => {
+                    state.selectedClientIds.clear();
+                    renderClientsTable();
+                    updateSelectionUI();
+                    groupNameInput.value = '';
+                    groupClientCountEl.textContent = state.filteredClients.length;
+                    openModal('createGroup');
+                });
+                
+                createGroupSelectionBtn.addEventListener('click', () => {
+                    groupNameInput.value = '';
+                    groupClientCountEl.textContent = state.selectedClientIds.size;
+                    openModal('createGroup');
+                });
+
                 saveGroupBtn.addEventListener('click', saveGroup);
+                
                 groupListEl.addEventListener('click', e => {
                     const target = e.target.closest('button');
                     if (!target) return;
@@ -1440,10 +1493,29 @@
                     if (target.classList.contains('view-group-btn')) { openViewGroupModal(groupId); }
                     if (target.classList.contains('edit-group-btn')) { openRenameModal(groupId); }
                 });
+
+                selectAllClientsCheckbox.addEventListener('change', e => {
+                    const isChecked = e.target.checked;
+                    const checkboxes = clientsTableBody.querySelectorAll('.client-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        const clientId = +checkbox.dataset.clientId;
+                        checkbox.checked = isChecked;
+                        if (isChecked) state.selectedClientIds.add(clientId);
+                        else state.selectedClientIds.delete(clientId);
+                    });
+                    updateSelectionUI();
+                });
+
                 clientsTableBody.addEventListener('click', e => {
                     const target = e.target;
                     if (target.closest('.view-details-btn')) openClientDetailsModal(+target.closest('.view-details-btn').dataset.clientId);
                     if (target.closest('.favorite-star')) toggleFavorite(+target.closest('.favorite-star').dataset.clientId);
+                    if (target.classList.contains('client-checkbox')) {
+                        const clientId = +target.dataset.clientId;
+                        if (target.checked) state.selectedClientIds.add(clientId);
+                        else state.selectedClientIds.delete(clientId);
+                        updateSelectionUI();
+                    }
                 });
                 document.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('active')));
                 saveClientNoteBtn.addEventListener('click', saveClientNote);
