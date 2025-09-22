@@ -269,9 +269,9 @@
             border-radius: var(--border-radius);
             margin-bottom: 1rem;
             transition: box-shadow 0.2s;
-        }
-        #groups-view .group-item:hover {
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        #groups-view .group-item .group-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
         /* --- Modal --- */
@@ -546,6 +546,22 @@
         </div>
     </div>
     
+    <!-- Modal para Renomear Grupo -->
+    <div id="rename-group-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Renomear Grupo</h3>
+                <button class="modal-close" id="close-rename-modal-btn">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="rename-group-name">Novo nome do Grupo</label>
+                <input type="text" id="rename-group-name" class="form-control">
+                <input type="hidden" id="rename-group-id">
+            </div>
+            <button id="rename-group-save-btn" class="button">Salvar Alterações</button>
+        </div>
+    </div>
+
     <!-- Modal para Ver Clientes do Grupo -->
     <div id="view-group-modal" class="modal-overlay">
         <div class="modal-content modal-content-large">
@@ -619,6 +635,12 @@
             const viewGroupNameEl = document.getElementById('view-group-name');
             const groupClientsTableBody = document.querySelector('#group-clients-table tbody');
             const exportGroupBtn = document.getElementById('export-group-btn');
+
+            const renameGroupModal = document.getElementById('rename-group-modal');
+            const closeRenameModalBtn = document.getElementById('close-rename-modal-btn');
+            const renameGroupNameInput = document.getElementById('rename-group-name');
+            const renameGroupIdInput = document.getElementById('rename-group-id');
+            const renameGroupSaveBtn = document.getElementById('rename-group-save-btn');
 
             const resetDataBtn = document.getElementById('reset-data');
             const notificationEl = document.getElementById('notification');
@@ -928,8 +950,9 @@
                             <h3>${group.name}</h3>
                             <p>${group.clientIds.length} cliente(s)</p>
                         </div>
-                        <div>
+                        <div class="group-actions">
                             <button class="button button-secondary view-group-btn" data-group-id="${group.id}">Ver</button>
+                            <button class="button button-secondary edit-group-btn" data-group-id="${group.id}">Renomear</button>
                             <button class="button button-danger delete-group-btn" data-group-id="${group.id}">Excluir</button>
                         </div>
                     `;
@@ -962,6 +985,34 @@
                     state.groups = state.groups.filter(g => g.id !== groupId);
                     saveDataToLocalStorage();
                     renderGroups();
+                }
+            };
+
+            const openRenameModal = (groupId) => {
+                const group = state.groups.find(g => g.id === groupId);
+                if (group) {
+                    renameGroupNameInput.value = group.name;
+                    renameGroupIdInput.value = group.id;
+                    renameGroupModal.classList.add('active');
+                }
+            };
+
+            const saveGroupName = () => {
+                const groupId = parseInt(renameGroupIdInput.value, 10);
+                const newName = renameGroupNameInput.value.trim();
+
+                if (!newName) {
+                    showNotification('O nome do grupo não pode ser vazio.', 'error');
+                    return;
+                }
+
+                const group = state.groups.find(g => g.id === groupId);
+                if (group) {
+                    group.name = newName;
+                    saveDataToLocalStorage();
+                    renderGroups();
+                    renameGroupModal.classList.remove('active');
+                    showNotification('Grupo renomeado com sucesso!');
                 }
             };
 
@@ -1044,12 +1095,18 @@
                     if(target.classList.contains('view-group-btn')) {
                         openViewGroupModal(parseInt(target.dataset.groupId, 10));
                     }
+                    if(target.classList.contains('edit-group-btn')) {
+                        openRenameModal(parseInt(target.dataset.groupId, 10));
+                    }
                 });
 
                 closeViewModalBtn.addEventListener('click', () => viewGroupModal.classList.remove('active'));
                 exportGroupBtn.addEventListener('click', () => {
                     if (state.currentGroupIdToExport) exportGroupToCSV(state.currentGroupIdToExport);
                 });
+
+                closeRenameModalBtn.addEventListener('click', () => renameGroupModal.classList.remove('active'));
+                renameGroupSaveBtn.addEventListener('click', saveGroupName);
 
                 resetDataBtn.addEventListener('click', () => {
                     if(confirm('Isso apagará TODOS os clientes e grupos salvos. Deseja continuar?')) {
@@ -1066,4 +1123,5 @@
     </script>
 </body>
 </html>
+
 
