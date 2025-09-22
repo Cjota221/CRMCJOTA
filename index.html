@@ -9,18 +9,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #007bff;
-            --primary-hover: #0056b3;
-            --secondary-color: #6c757d;
-            --background-color: #f8f9fa;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #6b7280;
+            --background-color: #f9fafb;
             --surface-color: #ffffff;
-            --text-color: #212529;
-            --border-color: #dee2e6;
-            --danger-color: #dc3545;
-            --success-color: #28a745;
+            --text-color: #111827;
+            --border-color: #e5e7eb;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
             --font-family: 'Inter', sans-serif;
-            --border-radius: 8px;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --border-radius: 0.5rem;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .dark-mode {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --secondary-color: #9ca3af;
+            --background-color: #111827;
+            --surface-color: #1f2937;
+            --text-color: #f9fafb;
+            --border-color: #374151;
         }
 
         * {
@@ -35,6 +47,8 @@
             background-color: var(--background-color);
             color: var(--text-color);
             font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         #app {
@@ -48,17 +62,20 @@
             width: 250px;
             background-color: var(--surface-color);
             border-right: 1px solid var(--border-color);
-            padding: 2rem 1rem;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, background-color 0.3s, border-color 0.3s;
+            flex-shrink: 0;
+            z-index: 1100;
         }
 
         .sidebar h1 {
             font-size: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             text-align: center;
             color: var(--primary-color);
+            font-weight: 700;
         }
 
         .sidebar nav a {
@@ -73,15 +90,105 @@
             font-weight: 500;
             transition: background-color 0.2s, color 0.2s;
         }
-
+        
         .sidebar nav a.active,
         .sidebar nav a:hover {
-            background-color: #e9ecef;
-            color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+        }
+         .sidebar nav a svg {
+            transition: stroke 0.2s;
+         }
+        .sidebar nav a.active svg,
+        .sidebar nav a:hover svg {
+            stroke: white;
         }
         
         .sidebar .sidebar-footer {
             margin-top: auto;
+        }
+
+        /* --- Page Container --- */
+        .page-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: calc(100% - 250px);
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s, border-color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        #menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        #global-search-wrapper {
+            position: relative;
+        }
+
+        #global-search {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #global-search:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+        #global-search-wrapper svg {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+
+        #theme-switcher {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #theme-switcher:hover {
+            background-color: var(--border-color);
+        }
+
+        #breadcrumb {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
         }
 
         /* --- Main Content --- */
@@ -91,327 +198,228 @@
             overflow-y: auto;
         }
 
-        .view {
-            display: none;
-        }
-
+        .view { display: none; }
         .view.active {
             display: block;
             animation: fadeIn 0.5s;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- Dashboard --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .dashboard-card {
+            background-color: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .dashboard-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .dashboard-card-header .icon {
+            background-color: color-mix(in srgb, var(--primary-color) 15%, transparent);
+            color: var(--primary-color);
+            padding: 0.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dashboard-card h3 {
+            font-size: 1rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        .dashboard-card .metric {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .dashboard-card ul { list-style: none; padding: 0; margin-top: 1rem; }
+        .dashboard-card li { padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        .dashboard-card li:last-child { border-bottom: none; }
+        
+
         /* --- Componentes --- */
         .card {
             background: var(--surface-color);
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-md);
             padding: 2rem;
             margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
         }
-        
-        .card-header {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .card-header h2 {
-            font-size: 1.5rem;
-            color: var(--text-color);
-        }
-        
-        .card-header p {
-            color: var(--secondary-color);
-            margin-top: 0.25rem;
-        }
+        .card-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .card-header h2 { font-size: 1.5rem; color: var(--text-color); }
+        .card-header p { color: var(--secondary-color); margin-top: 0.25rem; }
 
         .button {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-decoration: none;
-            text-align: center;
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem;
+            border: none; border-radius: var(--border-radius); background-color: var(--primary-color);
+            color: white; font-weight: 600; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s;
+            text-decoration: none; text-align: center; box-shadow: var(--shadow-sm);
         }
+        .button:hover { background-color: var(--primary-hover); box-shadow: var(--shadow-md); }
+        .button:disabled { background-color: var(--secondary-color); opacity: 0.7; cursor: not-allowed; }
+        .button-secondary { background-color: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); }
+        .button-secondary:hover { background-color: var(--background-color); }
+        .button-danger { background-color: var(--danger-color); }
+        .button-danger:hover { background-color: #be123c; }
 
-        .button:hover {
-            background-color: var(--primary-hover);
-        }
-        
-        .button-secondary {
-            background-color: var(--secondary-color);
-        }
-        .button-secondary:hover {
-            background-color: #5a6268;
-        }
-
-        .button-danger {
-            background-color: var(--danger-color);
-        }
-        .button-danger:hover {
-            background-color: #c82333;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
         .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            font-family: var(--font-family);
+            width: 100%; padding: 0.75rem; border: 1px solid var(--border-color);
+            border-radius: var(--border-radius); font-size: 1rem; font-family: var(--font-family);
+            background-color: var(--background-color); color: var(--text-color);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
         }
 
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        th { font-weight: 600; font-size: 0.85rem; color: var(--secondary-color); text-transform: uppercase; }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5rem;
-        }
+        .favorite-star { cursor: pointer; color: var(--border-color); transition: color 0.2s; font-size: 1.25rem; }
+        .favorite-star.favorited { color: var(--warning-color); }
+        .favorite-star:hover { color: var(--warning-color); }
         
-        th, td {
-            padding: 0.75rem 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-        
-        th {
-            font-weight: 600;
-            background-color: #f8f9fa;
-        }
-
-        /* --- Views Específicas --- */
         #upload-view .upload-box {
-            text-align: center;
-            border: 2px dashed var(--border-color);
-            padding: 4rem;
-            border-radius: var(--border-radius);
-            transition: border-color 0.2s, background-color 0.2s;
+            text-align: center; border: 2px dashed var(--border-color); padding: 4rem;
+            border-radius: var(--border-radius); transition: border-color 0.2s, background-color 0.2s;
         }
-        
         #upload-view .upload-box:hover {
             border-color: var(--primary-color);
-            background-color: #f8f9fa;
+            background-color: color-mix(in srgb, var(--primary-color) 5%, transparent);
         }
-        
-        #upload-view input[type="file"] {
-            display: none;
-        }
+        #upload-view input[type="file"] { display: none; }
 
         #clients-view .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-            align-items: end;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem; margin-bottom: 1.5rem; align-items: end;
         }
         
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 1.5rem;
-        }
-        
+        .pagination { display: flex; justify-content: center; align-items: center; margin-top: 1.5rem; }
         .pagination button {
-            background: none;
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            margin: 0 0.25rem;
-            cursor: pointer;
-            border-radius: var(--border-radius);
+            background: var(--surface-color); border: 1px solid var(--border-color); padding: 0.5rem 1rem;
+            margin: 0 0.25rem; cursor: pointer; border-radius: var(--border-radius); color: var(--text-color);
         }
-        
-        .pagination button:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-        
-        .pagination span {
-            margin: 0 1rem;
-            font-weight: 500;
-        }
-
-        #groups-view .group-list {
-            list-style: none;
-        }
+        .pagination button:hover { background-color: var(--background-color); }
+        .pagination button:disabled { cursor: not-allowed; opacity: 0.5; }
         
         #groups-view .group-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            margin-bottom: 1rem;
-            transition: box-shadow 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--border-radius);
+            margin-bottom: 1rem; transition: box-shadow 0.2s, border-color 0.2s;
         }
-        #groups-view .group-item .group-actions {
-            display: flex;
-            gap: 0.5rem;
+        #groups-view .group-item:hover{
+            border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
+            box-shadow: var(--shadow-md);
         }
+        #groups-view .group-item .group-actions { display: flex; gap: 0.5rem; }
 
         /* --- Modal --- */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
         }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
+        .modal-overlay.active { display: flex; }
         .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            width: 90%;
-            max-width: 500px;
-            animation: slideIn 0.3s;
+            background-color: var(--surface-color); padding: 2rem; border-radius: var(--border-radius);
+            width: 90%; max-width: 500px; animation: slideIn 0.3s; box-shadow: var(--shadow-md);
         }
-        
-        .modal-content-large {
-            max-width: 950px;
-            width: 95%;
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-content-large .table-responsive {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        
+        .modal-content-large { max-width: 950px; width: 95%; height: 90vh; display: flex; flex-direction: column; }
+        .modal-content-large .table-responsive { flex-grow: 1; overflow-y: auto; }
         .client-details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;
         }
-        .client-details-grid p {
-            margin-bottom: 0;
-        }
+        .client-details-grid p { margin-bottom: 0; word-break: break-word; }
         .client-details-grid strong {
-            display: block;
-            color: var(--secondary-color);
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
+            display: block; color: var(--secondary-color); font-size: 0.9rem; margin-bottom: 0.25rem;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
 
+        /* Context Menu */
+        #context-menu {
+            position: absolute; display: none; background-color: var(--surface-color);
+            border-radius: var(--border-radius); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 0.5rem 0; z-index: 2000; min-width: 180px;
+        }
+        #context-menu ul { list-style: none; }
+        #context-menu li {
+            padding: 0.75rem 1.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;
+        }
+        #context-menu li:hover { background-color: var(--primary-color); color: white; }
+        #context-menu li:hover svg { stroke: white; }
+
+        /* Notificação */
         .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--success-color);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            z-index: 2000;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.3s, transform 0.3s;
+            position: fixed; bottom: 20px; right: 20px; background-color: var(--success-color);
+            color: white; padding: 1rem 1.5rem; border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md); z-index: 3000; opacity: 0;
+            transform: translateY(20px); transition: opacity 0.3s, transform 0.3s;
             pointer-events: none;
         }
-
-        .notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .notification.error {
-            background-color: var(--danger-color);
-        }
+        .notification.show { opacity: 1; transform: translateY(0); }
+        .notification.error { background-color: var(--danger-color); }
 
         /* --- Responsividade --- */
+        @media (max-width: 992px) {
+             .sidebar {
+                position: fixed;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+             }
+             .sidebar.open { transform: translateX(0); }
+             .page-container { width: 100%; }
+             #menu-toggle { display: block; }
+        }
+
         @media (max-width: 768px) {
-            #app {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
+            .header { padding: 1rem; }
+            #breadcrumb { display: none; }
+            .main-content { padding: 1rem; }
+            .card { padding: 1.5rem; }
+            
+            /* Tabela vira cards */
+            #clients-table thead { display: none; }
+            #clients-table tbody, #clients-table tr, #clients-table td { display: block; width: 100%; }
+            #clients-table tr {
+                background: var(--surface-color); border-radius: var(--border-radius);
+                margin-bottom: 1rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
                 padding: 1rem;
-                border-right: none;
+            }
+            #clients-table td {
+                padding: 0.5rem 0; border: none; display: flex;
+                justify-content: space-between; align-items: center;
                 border-bottom: 1px solid var(--border-color);
             }
-            .sidebar h1 {
-                margin: 0;
-                font-size: 1.2rem;
-            }
-            .sidebar nav {
-                display: flex;
-                gap: 0.5rem;
-            }
-            .sidebar nav a {
-                padding: 0.5rem;
-                margin: 0;
-            }
-             .sidebar nav a span {
-                display: none; /* Oculta texto em telas pequenas */
-            }
-            .sidebar .sidebar-footer {
-                display: none;
-            }
-            .main-content {
-                padding: 1rem;
-            }
-            .card {
-                padding: 1.5rem;
+            #clients-table tr td:last-child { border-bottom: none; }
+            #clients-table td:before {
+                content: attr(data-label); font-weight: 500; color: var(--secondary-color);
+                margin-right: 1rem;
             }
         }
     </style>
@@ -419,22 +427,27 @@
 <body>
 
     <div id="app" style="opacity: 0;">
-        <!-- Container principal do CRM -->
-
-        <!-- Barra Lateral de Navegação -->
         <aside class="sidebar">
             <h1>CRM Leve</h1>
             <nav id="main-nav">
+                <a href="#dashboard" class="nav-link" title="Dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#inactivity" class="nav-link" title="Relatório de Inatividade">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Inatividade</span>
+                </a>
                 <a href="#upload" class="nav-link" title="Importar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                     <span>Importar</span>
                 </a>
                 <a href="#clients" class="nav-link" title="Clientes">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     <span>Clientes</span>
                 </a>
                 <a href="#groups" class="nav-link" title="Grupos">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     <span>Grupos</span>
                 </a>
             </nav>
@@ -443,199 +456,199 @@
             </div>
         </aside>
 
-        <!-- Conteúdo Principal -->
-        <main class="main-content">
-            <!-- Tela de Upload (inicial) -->
-            <section id="upload-view" class="view">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Importar Clientes</h2>
-                        <p>Selecione um arquivo .CSV para adicionar novos clientes à sua base de dados.</p>
-                    </div>
-                    <div id="upload-box" class="upload-box" style="cursor: pointer;">
-                        <input type="file" id="csv-file-input" accept=".csv">
-                        <h3>Clique ou arraste o arquivo aqui</h3>
-                        <p>O sistema identifica contatos duplicados pelo WhatsApp e os ignora.</p>
-                    </div>
-                     <div id="loading-spinner" style="display: none; text-align: center; margin-top: 1rem;">
-                        <p>Processando, por favor aguarde...</p>
-                    </div>
+        <div class="page-container">
+            <header class="header">
+                <div class="header-left">
+                    <button id="menu-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <div id="breadcrumb"></div>
                 </div>
-            </section>
+                <div id="global-search-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="search" id="global-search" placeholder="Buscar cliente...">
+                </div>
+                <button id="theme-switcher" title="Mudar tema">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </header>
 
-            <!-- Tela de Clientes -->
-            <section id="clients-view" class="view">
-                <div class="card">
-                    <div class="card-header">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-                            <div>
-                                <h2>Painel de Clientes</h2>
-                                <p>Filtre, ordene e gerencie sua base de clientes.</p>
+            <main class="main-content">
+                <section id="dashboard-view" class="view">
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
+                                <h3>Total de Clientes</h3>
                             </div>
-                            <div style="text-align: right; background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
-                                <h3 style="color: var(--secondary-color); font-size: 0.8rem; margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase;">Total na Base</h3>
-                                <p id="total-clients-count" style="font-size: 2rem; font-weight: 700; color: var(--primary-color); line-height: 1;">0</p>
+                            <p class="metric" id="db-total-clients">0</p>
+                        </div>
+                         <div class="dashboard-card">
+                            <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                                <div>
+                                    <h3>Clientes Ativos / Inativos</h3>
+                                    <small>Ativos nos últimos 90 dias</small>
+                                </div>
+                            </div>
+                            <p class="metric" id="db-active-inactive">0 / 0</p>
+                        </div>
+                        <div class="dashboard-card">
+                             <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg></div>
+                                <h3>Aniversariantes da Semana</h3>
+                            </div>
+                            <p class="metric" id="db-birthday-week">0</p>
+                            <ul id="db-birthday-list"></ul>
+                        </div>
+                        <div class="dashboard-card">
+                             <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+                                <h3>Top 5 Clientes (Maior Compra)</h3>
+                            </div>
+                            <ul id="db-top-clients"></ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="inactivity-view" class="view">
+                     <div class="card">
+                        <div class="card-header">
+                            <h2>Relatório de Inatividade</h2>
+                            <p>Segmente clientes pelo tempo desde a última compra para campanhas de reativação.</p>
+                        </div>
+                        <div class="dashboard-grid" id="inactivity-report-grid">
+                            <!-- Cards de inatividade serão inseridos aqui -->
+                        </div>
+                    </div>
+                </section>
+
+                <section id="upload-view" class="view">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Importar Clientes</h2>
+                            <p>Selecione um arquivo .CSV para adicionar novos clientes à sua base de dados.</p>
+                        </div>
+                        <div id="upload-box" class="upload-box" style="cursor: pointer;">
+                            <input type="file" id="csv-file-input" accept=".csv">
+                            <h3>Clique ou arraste o arquivo aqui</h3>
+                            <p>O sistema identifica contatos duplicados pelo WhatsApp e os ignora.</p>
+                        </div>
+                         <div id="loading-spinner" style="display: none; text-align: center; margin-top: 1rem;">
+                            <p>Processando, por favor aguarde...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="clients-view" class="view">
+                    <div class="card">
+                        <div class="card-header"><h2>Painel de Clientes</h2></div>
+                        <div class="filters-grid">
+                            <div class="form-group">
+                                <label for="sort-by">Ordenar por</label>
+                                <select id="sort-by" class="form-control">
+                                    <option value="total_desc">Maior Compra</option>
+                                    <option value="total_asc">Menor Compra</option>
+                                    <option value="inactive_desc">Mais Inativos</option>
+                                    <option value="inactive_asc">Menos Inativos</option>
+                                    <option value="favorites">Favoritos</option>
+                                </select>
+                            </div>
+                             <div class="form-group">
+                                <label for="filter-state">Filtrar por Estado</label>
+                                <select id="filter-state" class="form-control"><option value="">Todos</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-inactivity">Inativos há (dias)</label>
+                                <input type="number" id="filter-inactivity" class="form-control" placeholder="Ex: 90">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-birthday-month">Aniversário (Mês)</label>
+                                <select id="filter-birthday-month" class="form-control">
+                                    <option value="">Todos</option><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-last-purchase-year">Ano da Compra</label>
+                                <select id="filter-last-purchase-year" class="form-control"><option value="">Todos</option></select>
+                            </div>
+                            <div class="form-group">
+                                 <button id="apply-filters" class="button" style="width:100%;">Aplicar Filtros</button>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="filters-grid">
-                        <div class="form-group">
-                            <label for="sort-by">Ordenar por</label>
-                            <select id="sort-by" class="form-control">
-                                <option value="total_desc">Maior Compra</option>
-                                <option value="total_asc">Menor Compra</option>
-                                <option value="inactive_desc">Mais Inativos</option>
-                                <option value="inactive_asc">Menos Inativos</option>
-                            </select>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button id="create-group-btn" class="button" disabled>Criar Grupo</button>
+                            <button id="export-clients-email-btn" class="button button-secondary" disabled>Exportar com E-mail</button>
+                            <button id="filter-today-birthday-btn" class="button button-secondary">Aniversariantes de Hoje</button>
                         </div>
-                         <div class="form-group">
-                            <label for="filter-state">Filtrar por Estado</label>
-                            <select id="filter-state" class="form-control">
-                                <option value="">Todos os Estados</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="filter-inactivity">Inativos há mais de (dias)</label>
-                            <input type="number" id="filter-inactivity" class="form-control" placeholder="Ex: 90">
-                        </div>
-                        <div class="form-group">
-                            <label for="filter-birthday-month">Mês do Aniversário</label>
-                            <select id="filter-birthday-month" class="form-control">
-                                <option value="">Todos</option>
-                                <option value="1">Janeiro</option>
-                                <option value="2">Fevereiro</option>
-                                <option value="3">Março</option>
-                                <option value="4">Abril</option>
-                                <option value="5">Maio</option>
-                                <option value="6">Junho</option>
-                                <option value="7">Julho</option>
-                                <option value="8">Agosto</option>
-                                <option value="9">Setembro</option>
-                                <option value="10">Outubro</option>
-                                <option value="11">Novembro</option>
-                                <option value="12">Dezembro</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="filter-last-purchase-year">Ano da Última Compra</label>
-                            <select id="filter-last-purchase-year" class="form-control">
-                                <option value="">Todos</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                             <button id="apply-filters" class="button" style="width:100%;">Aplicar Filtros</button>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button id="create-group-btn" class="button" disabled>Criar Grupo com Filtro Atual</button>
-                        <button id="export-clients-email-btn" class="button button-secondary" disabled>Exportar com E-mail</button>
-                        <button id="filter-today-birthday-btn" class="button button-secondary">Aniversariantes de Hoje</button>
-                    </div>
-                     <p id="filtered-count" style="margin-top: 0.5rem; color: var(--secondary-color);"></p>
+                         <p id="filtered-count" style="margin-top: 1rem; color: var(--secondary-color);"></p>
 
-                    <div class="table-responsive">
-                        <table id="clients-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>WhatsApp</th>
-                                    <th>Localização</th>
-                                    <th>Última Compra</th>
-                                    <th>Data Nasc.</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Linhas da tabela serão inseridas aqui -->
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table id="clients-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Nome</th>
+                                        <th>WhatsApp</th>
+                                        <th>Localização</th>
+                                        <th>Última Compra</th>
+                                        <th>Data Nasc.</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination" id="pagination-controls"></div>
                     </div>
-                    <div class="pagination" id="pagination-controls">
-                        <!-- Controles de paginação serão inseridos aqui -->
+                </section>
+                
+                <section id="groups-view" class="view">
+                    <div class="card">
+                         <div class="card-header"><h2>Grupos de Clientes</h2></div>
+                        <div id="group-list"></div>
                     </div>
-                </div>
-            </section>
-            
-            <!-- Tela de Grupos -->
-            <section id="groups-view" class="view">
-                <div class="card">
-                     <div class="card-header">
-                        <h2>Grupos de Clientes</h2>
-                        <p>Visualize e exporte os grupos que você criou.</p>
-                    </div>
-                    <div id="group-list">
-                        <!-- Lista de grupos será inserida aqui -->
-                    </div>
-                </div>
-            </section>
-        </main>
-
+                </section>
+            </main>
+        </div>
     </div>
     
-    <!-- Modal para Criar Grupo -->
+    <!-- Modals -->
     <div id="create-group-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Criar Novo Grupo</h3>
-                <button class="modal-close" id="close-modal-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Criar Novo Grupo</h3><button class="modal-close">&times;</button></div>
             <div class="form-group">
                 <label for="group-name">Nome do Grupo</label>
                 <input type="text" id="group-name" class="form-control" placeholder="Ex: Clientes Inativos SP">
                 <p style="margin-top: 0.5rem; color: var(--secondary-color);">
                     Este grupo conterá <strong id="group-client-count">0</strong> clientes.
                 </p>
-            </div>
-            <button id="save-group-btn" class="button">Salvar Grupo</button>
+            </div><button id="save-group-btn" class="button">Salvar Grupo</button>
         </div>
     </div>
-    
-    <!-- Modal para Renomear Grupo -->
     <div id="rename-group-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Renomear Grupo</h3>
-                <button class="modal-close" id="close-rename-modal-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Renomear Grupo</h3><button class="modal-close">&times;</button></div>
             <div class="form-group">
                 <label for="rename-group-name">Novo nome do Grupo</label>
-                <input type="text" id="rename-group-name" class="form-control">
-                <input type="hidden" id="rename-group-id">
-            </div>
-            <button id="rename-group-save-btn" class="button">Salvar Alterações</button>
+                <input type="text" id="rename-group-name" class="form-control"><input type="hidden" id="rename-group-id">
+            </div><button id="rename-group-save-btn" class="button">Salvar Alterações</button>
         </div>
     </div>
-
-    <!-- Modal para Ver Clientes do Grupo -->
     <div id="view-group-modal" class="modal-overlay">
         <div class="modal-content modal-content-large">
-            <div class="modal-header">
-                <h3 id="view-group-name"></h3>
-                <button class="modal-close" id="close-view-modal-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="view-group-name"></h3><button class="modal-close">&times;</button></div>
             <div class="table-responsive">
                  <table id="group-clients-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>WhatsApp</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Nome</th><th>WhatsApp</th></tr></thead>
                     <tbody></tbody>
                 </table>
-            </div>
-            <button id="export-group-btn" class="button" style="margin-top: 1.5rem;">Exportar (Nome e WhatsApp)</button>
+            </div><button id="export-group-btn" class="button" style="margin-top: 1.5rem;">Exportar (Nome e WhatsApp)</button>
         </div>
     </div>
-    
-    <!-- Modal para Ver Detalhes do Cliente -->
     <div id="view-client-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header">
-                <h3 id="client-detail-name"></h3>
-                <button class="modal-close" id="close-client-detail-modal-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="client-detail-name"></h3><button class="modal-close">&times;</button></div>
             <div class="client-details-grid">
                 <p><strong>WhatsApp:</strong> <span id="client-detail-whatsapp"></span></p>
                 <p><strong>E-mail:</strong> <span id="client-detail-email"></span></p>
@@ -650,26 +663,32 @@
         </div>
     </div>
 
-
+    <!-- Context Menu -->
+    <div id="context-menu">
+        <ul>
+            <li id="ctx-whatsapp"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg><span>WhatsApp</span></li>
+            <li id="ctx-email"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><span>Enviar E-mail</span></li>
+            <li id="ctx-details"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Ver Detalhes</span></li>
+        </ul>
+    </div>
     <div id="notification" class="notification"></div>
-
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Estado da Aplicação ---
-            const state = {
-                clients: [],
-                groups: [],
-                filteredClients: [],
-                currentPage: 1,
-                rowsPerPage: 100,
-                currentGroupIdToExport: null,
-            };
+            const state = { clients: [], groups: [], filteredClients: [], currentPage: 1, rowsPerPage: 100, currentGroupIdToExport: null, contextClient: null };
 
             // --- Seletores de DOM ---
             const app = document.getElementById('app');
+            const sidebar = document.querySelector('.sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
             const mainNav = document.getElementById('main-nav');
+            const breadcrumb = document.getElementById('breadcrumb');
+            const themeSwitcher = document.getElementById('theme-switcher');
+            const globalSearch = document.getElementById('global-search');
             const views = {
+                dashboard: document.getElementById('dashboard-view'),
+                inactivity: document.getElementById('inactivity-view'),
                 upload: document.getElementById('upload-view'),
                 clients: document.getElementById('clients-view'),
                 groups: document.getElementById('groups-view'),
@@ -677,62 +696,53 @@
             const uploadBox = document.getElementById('upload-box');
             const fileInput = document.getElementById('csv-file-input');
             const loadingSpinner = document.getElementById('loading-spinner');
-            
             const clientsTableBody = document.querySelector('#clients-table tbody');
             const paginationControls = document.getElementById('pagination-controls');
             const filteredCountEl = document.getElementById('filtered-count');
-            const totalClientsCountEl = document.getElementById('total-clients-count');
-            
             const sortByEl = document.getElementById('sort-by');
             const filterStateEl = document.getElementById('filter-state');
             const filterInactivityEl = document.getElementById('filter-inactivity');
             const filterBirthdayMonthEl = document.getElementById('filter-birthday-month');
             const filterLastPurchaseYearEl = document.getElementById('filter-last-purchase-year');
             const applyFiltersBtn = document.getElementById('apply-filters');
-            
             const createGroupBtn = document.getElementById('create-group-btn');
             const exportClientsEmailBtn = document.getElementById('export-clients-email-btn');
             const filterTodayBirthdayBtn = document.getElementById('filter-today-birthday-btn');
             const groupListEl = document.getElementById('group-list');
-            
-            const createGroupModal = document.getElementById('create-group-modal');
-            const closeModalBtn = document.getElementById('close-modal-btn');
+            const inactivityReportGrid = document.getElementById('inactivity-report-grid');
+            const modals = {
+                createGroup: document.getElementById('create-group-modal'),
+                renameGroup: document.getElementById('rename-group-modal'),
+                viewGroup: document.getElementById('view-group-modal'),
+                viewClient: document.getElementById('view-client-modal'),
+            };
             const groupNameInput = document.getElementById('group-name');
             const groupClientCountEl = document.getElementById('group-client-count');
             const saveGroupBtn = document.getElementById('save-group-btn');
-
-            const viewGroupModal = document.getElementById('view-group-modal');
-            const closeViewModalBtn = document.getElementById('close-view-modal-btn');
             const viewGroupNameEl = document.getElementById('view-group-name');
             const groupClientsTableBody = document.querySelector('#group-clients-table tbody');
             const exportGroupBtn = document.getElementById('export-group-btn');
-
-            const renameGroupModal = document.getElementById('rename-group-modal');
-            const closeRenameModalBtn = document.getElementById('close-rename-modal-btn');
             const renameGroupNameInput = document.getElementById('rename-group-name');
             const renameGroupIdInput = document.getElementById('rename-group-id');
             const renameGroupSaveBtn = document.getElementById('rename-group-save-btn');
-            
-            const viewClientModal = document.getElementById('view-client-modal');
-            const closeClientDetailModalBtn = document.getElementById('close-client-detail-modal-btn');
-
-
+            const contextMenu = document.getElementById('context-menu');
             const resetDataBtn = document.getElementById('reset-data');
             const notificationEl = document.getElementById('notification');
 
             // --- Funções de Inicialização e Roteamento ---
-
             const init = () => {
                 loadDataFromLocalStorage();
                 setupEventListeners();
-                renderTotalClientCount();
+                applyTheme();
                 if (state.clients.length > 0) {
                     populateStateFilter();
                     populateYearFilter();
                     state.filteredClients = [...state.clients];
                     renderClientsTable();
                     renderGroups();
-                    navigateTo('clients');
+                    renderDashboard();
+                    renderInactivityReport();
+                    navigateTo('dashboard');
                 } else {
                     navigateTo('upload');
                 }
@@ -741,62 +751,55 @@
 
             const navigateTo = (viewName) => {
                 Object.values(views).forEach(v => v.classList.remove('active'));
-                if (views[viewName]) {
-                    views[viewName].classList.add('active');
-                }
+                if (views[viewName]) views[viewName].classList.add('active');
                 
                 document.querySelectorAll('.nav-link').forEach(link => {
                     link.classList.remove('active');
                     if(link.getAttribute('href') === `#${viewName}`) {
                         link.classList.add('active');
+                        breadcrumb.textContent = `Dashboard > ${link.title}`;
                     }
                 });
+
+                if (viewName === 'dashboard') {
+                    renderDashboard();
+                    breadcrumb.textContent = 'Dashboard';
+                }
+                if (viewName === 'inactivity') {
+                    renderInactivityReport();
+                    breadcrumb.textContent = 'Dashboard > Relatório de Inatividade';
+                }
+                 sidebar.classList.remove('open');
             };
             
             // --- Manipulação de Dados (LocalStorage) ---
-
             const loadDataFromLocalStorage = () => {
-                const clients = localStorage.getItem('crm_clients');
-                const groups = localStorage.getItem('crm_groups');
-                state.clients = clients ? JSON.parse(clients) : [];
-                state.groups = groups ? JSON.parse(groups) : [];
+                state.clients = JSON.parse(localStorage.getItem('crm_clients') || '[]');
+                state.groups = JSON.parse(localStorage.getItem('crm_groups') || '[]');
             };
-
             const saveDataToLocalStorage = () => {
                 localStorage.setItem('crm_clients', JSON.stringify(state.clients));
                 localStorage.setItem('crm_groups', JSON.stringify(state.groups));
             };
 
             // --- Lógica de Upload e Processamento de CSV ---
-            
             const showNotification = (message, type = 'success', duration = 4000) => {
                 notificationEl.textContent = message;
-                notificationEl.className = `notification ${type}`; // reseta classes
-                notificationEl.classList.add('show');
-
-                setTimeout(() => {
-                    notificationEl.classList.remove('show');
-                }, duration);
+                notificationEl.className = `notification ${type} show`;
+                setTimeout(() => notificationEl.classList.remove('show'), duration);
             };
 
             const handleFileUpload = (file) => {
-                if (!file || !file.type.match('text/csv')) {
-                    showNotification('Por favor, selecione um arquivo .CSV válido.', 'error');
-                    return;
-                }
+                if (!file || !file.type.match('text/csv')) return showNotification('Por favor, selecione um arquivo .CSV válido.', 'error');
                 loadingSpinner.style.display = 'block';
                 uploadBox.style.display = 'none';
-
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     try {
-                        const csvText = event.target.result;
-                        const newClients = processCSV(csvText);
-
+                        const newClients = processCSV(event.target.result);
                         const existingPhones = new Set(state.clients.map(c => c.whatsapp));
                         let addedCount = 0;
                         let maxId = state.clients.length > 0 ? Math.max(...state.clients.map(c => c.id)) : 0;
-
                         newClients.forEach(newClient => {
                             if (newClient.whatsapp && !existingPhones.has(newClient.whatsapp)) {
                                 newClient.id = ++maxId;
@@ -805,21 +808,20 @@
                                 addedCount++;
                             }
                         });
-                        
                         saveDataToLocalStorage();
-                        
                         setTimeout(() => {
                              loadingSpinner.style.display = 'none';
                              uploadBox.style.display = 'block';
                              showNotification(`${addedCount} novos clientes adicionados. ${newClients.length - addedCount} duplicados ignorados.`);
-                             
                              populateStateFilter();
                              populateYearFilter();
                              applyAllFilters();
                              renderGroups();
-                             renderTotalClientCount();
+                             if (state.clients.length > 0) {
+                                renderDashboard();
+                                navigateTo('dashboard');
+                             }
                         }, 500);
-
                     } catch (error) {
                         showNotification(`Ocorreu um erro: ${error.message}`, 'error');
                         console.error(error);
@@ -833,16 +835,10 @@
             const processCSV = (csvText) => {
                 const lines = csvText.split(/\r\n|\n/).filter(line => line.trim() !== '');
                 if (lines.length < 2) return [];
-
                 const headerLine = lines[0].replace(/^\uFEFF/, '');
-                
-                const commaCount = (headerLine.match(/,/g) || []).length;
-                const semicolonCount = (headerLine.match(/;/g) || []).length;
-                const delimiter = semicolonCount > commaCount ? ';' : ',';
-
+                const delimiter = (headerLine.match(/;/g) || []).length > (headerLine.match(/,/g) || []).length ? ';' : ',';
                 const headers = headerLine.split(delimiter).map(h => h.trim().replace(/"/g, '').toLowerCase());
                 const dataLines = lines.slice(1);
-
                 const fieldMappingConfig = {
                     nome: { aliases: ['nome', 'nome cliente', 'cliente', 'destinatário', 'razão social', 'nome fantasia'], index: -1, required: true },
                     whatsapp: { aliases: ['whatsapp', 'telefone 2', 'telefone', 'celular', 'telefone principal'], index: -1, required: true },
@@ -855,58 +851,26 @@
                     dataNascimento: { aliases: ['data nascimento', 'datanascimento(dd/mm/yyyy)', 'data de aniversário'], index: -1 },
                     dataUltimaCompra: { aliases: ['última compra', 'ultima compra'], index: -1 }
                 };
-
-
                 for (const fieldKey in fieldMappingConfig) {
                     const config = fieldMappingConfig[fieldKey];
                     const foundAlias = config.aliases.find(alias => headers.includes(alias));
-                    if (foundAlias) {
-                        config.index = headers.indexOf(foundAlias);
-                    }
+                    if (foundAlias) config.index = headers.indexOf(foundAlias);
+                    if (config.required && config.index === -1) throw new Error(`Coluna obrigatória não encontrada: "${config.aliases.join('", "')}"`);
                 }
-
-                for (const fieldKey in fieldMappingConfig) {
-                    const config = fieldMappingConfig[fieldKey];
-                    if (config.required && config.index === -1) {
-                        const requiredAliases = config.aliases.join('", "');
-                        throw new Error(`Coluna obrigatória não encontrada. O sistema procurou por "${requiredAliases}" e não encontrou.`);
-                    }
-                }
-                
                 const normalizePhone = (phone) => phone ? phone.replace(/\D/g, '') : '';
                 const cleanData = (data) => data ? data.trim().replace(/"/g, '').replace(/'/g, '') : '';
                 const parseDate = (dateString) => {
                     if (!dateString) return null;
                     const parts = dateString.match(/(\d+)/g);
                     if (!parts || parts.length < 3) return null;
-                    // Tenta dd/mm/yyyy
-                    if (parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
-                        return new Date(parts[2], parts[1] - 1, parts[0]);
-                    }
-                     // Tenta yyyy/mm/dd
-                    if (parts[0].length === 4 && parts[1].length <= 2 && parts[2].length <= 2) {
-                        return new Date(parts[0], parts[1] - 1, parts[2]);
-                    }
+                    if (parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) return new Date(parts[2], parts[1] - 1, parts[0]);
+                    if (parts[0].length === 4 && parts[1].length <= 2 && parts[2].length <= 2) return new Date(parts[0], parts[1] - 1, parts[2]);
                     return null;
                 };
-
                 const clientsData = dataLines.map(line => {
                     const data = line.split(delimiter);
-
                     const nome = fieldMappingConfig.nome.index !== -1 ? cleanData(data[fieldMappingConfig.nome.index]) : 'N/A';
                     const whatsapp = fieldMappingConfig.whatsapp.index !== -1 ? normalizePhone(cleanData(data[fieldMappingConfig.whatsapp.index])) : '';
-                    const email = fieldMappingConfig.email.index !== -1 ? cleanData(data[fieldMappingConfig.email.index]) : '';
-                    const cpf = fieldMappingConfig.cpf.index !== -1 ? cleanData(data[fieldMappingConfig.cpf.index]) : '';
-                    const endereco = fieldMappingConfig.endereco.index !== -1 ? cleanData(data[fieldMappingConfig.endereco.index]) : '';
-                    const estado = fieldMappingConfig.estado.index !== -1 ? cleanData(data[fieldMappingConfig.estado.index]) : 'N/A';
-                    const cidade = fieldMappingConfig.cidade.index !== -1 ? cleanData(data[fieldMappingConfig.cidade.index]) : 'N/A';
-                    
-                    let totalCompras = 0;
-                    if (fieldMappingConfig.totalCompras.index !== -1 && data[fieldMappingConfig.totalCompras.index]) {
-                        const totalComprasRaw = cleanData(data[fieldMappingConfig.totalCompras.index]);
-                        totalCompras = parseFloat(totalComprasRaw.replace(/[R$."]/g, '').replace(',', '.')) || 0;
-                    }
-                    
                     let lastPurchase = null;
                     const lastPurchaseRaw = fieldMappingConfig.dataUltimaCompra.index !== -1 ? cleanData(data[fieldMappingConfig.dataUltimaCompra.index]) : null;
                     lastPurchase = parseDate(lastPurchaseRaw);
@@ -914,52 +878,50 @@
                         lastPurchase = new Date();
                         lastPurchase.setDate(lastPurchase.getDate() - Math.floor(Math.random() * 365 * 2));
                     }
-                    
                     const birthDateRaw = fieldMappingConfig.dataNascimento.index !== -1 ? cleanData(data[fieldMappingConfig.dataNascimento.index]) : null;
                     const dataNascimento = parseDate(birthDateRaw);
-
-                    return { 
-                        nome, whatsapp, email, cpf, endereco, estado, cidade, totalCompras, 
+                    let totalCompras = 0;
+                     if (fieldMappingConfig.totalCompras.index !== -1 && data[fieldMappingConfig.totalCompras.index]) {
+                        const totalComprasRaw = cleanData(data[fieldMappingConfig.totalCompras.index]);
+                        totalCompras = parseFloat(totalComprasRaw.replace(/[R$."]/g, '').replace(',', '.')) || 0;
+                    }
+                    return {
+                        nome, whatsapp, isFavorite: false,
+                        email: fieldMappingConfig.email.index !== -1 ? cleanData(data[fieldMappingConfig.email.index]) : '',
+                        cpf: fieldMappingConfig.cpf.index !== -1 ? cleanData(data[fieldMappingConfig.cpf.index]) : '',
+                        endereco: fieldMappingConfig.endereco.index !== -1 ? cleanData(data[fieldMappingConfig.endereco.index]) : '',
+                        estado: fieldMappingConfig.estado.index !== -1 ? cleanData(data[fieldMappingConfig.estado.index]) : 'N/A',
+                        cidade: fieldMappingConfig.cidade.index !== -1 ? cleanData(data[fieldMappingConfig.cidade.index]) : 'N/A',
+                        totalCompras,
                         dataUltimaCompra: lastPurchase.toISOString(), 
                         dataNascimento: dataNascimento ? dataNascimento.toISOString() : null 
                     };
                 });
-
                 return clientsData.filter(c => c.nome && c.nome !== 'N/A' && c.whatsapp && c.whatsapp.length >= 10);
             };
 
-
-            // --- Renderização da Tabela de Clientes e Paginação ---
-
-            const renderTotalClientCount = () => {
-                if (totalClientsCountEl) {
-                    totalClientsCountEl.textContent = state.clients.length;
-                }
-            };
-
+            // --- Renderizações ---
             const renderClientsTable = () => {
                 clientsTableBody.innerHTML = '';
                 if (state.filteredClients.length === 0) {
-                     clientsTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum cliente encontrado com os filtros atuais.</td></tr>';
+                     clientsTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum cliente encontrado.</td></tr>';
                      renderPagination();
                      return;
                 }
-                
-                const start = (state.currentPage - 1) * state.rowsPerPage;
-                const end = start + state.rowsPerPage;
-                const paginatedClients = state.filteredClients.slice(start, end);
-
+                const paginatedClients = state.filteredClients.slice((state.currentPage - 1) * state.rowsPerPage, state.currentPage * state.rowsPerPage);
                 paginatedClients.forEach(client => {
                     const row = document.createElement('tr');
+                    row.dataset.clientId = client.id;
                     const lastPurchaseDate = new Date(client.dataUltimaCompra);
                     const birthDate = client.dataNascimento ? new Date(client.dataNascimento) : null;
                     row.innerHTML = `
-                        <td>${client.nome}</td>
-                        <td>${client.whatsapp}</td>
-                        <td>${client.cidade || 'N/A'}, ${client.estado || 'N/A'}</td>
-                        <td>${lastPurchaseDate.toLocaleDateString('pt-BR')}</td>
-                        <td>${birthDate ? birthDate.toLocaleDateString('pt-BR') : 'N/A'}</td>
-                        <td><button class="button button-secondary view-details-btn" data-client-id="${client.id}">Ver</button></td>
+                        <td data-label=""><span class="favorite-star ${client.isFavorite ? 'favorited' : ''}" data-client-id="${client.id}">&#9733;</span></td>
+                        <td data-label="Nome">${client.nome}</td>
+                        <td data-label="WhatsApp">${client.whatsapp}</td>
+                        <td data-label="Localização">${client.cidade || 'N/A'}, ${client.estado || 'N/A'}</td>
+                        <td data-label="Última Compra">${lastPurchaseDate.toLocaleDateString('pt-BR')}</td>
+                        <td data-label="Data Nasc.">${birthDate ? birthDate.toLocaleDateString('pt-BR') : 'N/A'}</td>
+                        <td data-label="Ações"><button class="button button-secondary view-details-btn" data-client-id="${client.id}">Ver</button></td>
                     `;
                     clientsTableBody.appendChild(row);
                 });
@@ -970,83 +932,59 @@
                 paginationControls.innerHTML = '';
                 const totalPages = Math.ceil(state.filteredClients.length / state.rowsPerPage);
                 if (totalPages <= 1) return;
-
                 const prevButton = document.createElement('button');
                 prevButton.innerText = 'Anterior';
                 prevButton.disabled = state.currentPage === 1;
-                prevButton.onclick = () => {
-                    state.currentPage--;
-                    renderClientsTable();
-                };
-
+                prevButton.onclick = () => { state.currentPage--; renderClientsTable(); };
                 const pageInfo = document.createElement('span');
                 pageInfo.innerText = `Página ${state.currentPage} de ${totalPages}`;
-
                 const nextButton = document.createElement('button');
                 nextButton.innerText = 'Próxima';
                 nextButton.disabled = state.currentPage === totalPages;
-                nextButton.onclick = () => {
-                    state.currentPage++;
-                    renderClientsTable();
-                };
-
-                paginationControls.appendChild(prevButton);
-                paginationControls.appendChild(pageInfo);
-                paginationControls.appendChild(nextButton);
+                nextButton.onclick = () => { state.currentPage++; renderClientsTable(); };
+                paginationControls.append(prevButton, pageInfo, nextButton);
             };
 
-            // --- Lógica de Filtros e Ordenação ---
+            const renderGroups = () => {
+                groupListEl.innerHTML = '';
+                if (state.groups.length === 0) return groupListEl.innerHTML = '<p>Nenhum grupo criado ainda. Use os filtros na aba "Clientes" para criar um.</p>';
+                state.groups.forEach(group => {
+                    const groupItem = document.createElement('div');
+                    groupItem.className = 'group-item';
+                    groupItem.innerHTML = `
+                        <div><h3>${group.name}</h3><p>${group.clientIds.length} cliente(s)</p></div>
+                        <div class="group-actions">
+                            <button class="button button-secondary view-group-btn" data-group-id="${group.id}">Ver</button>
+                            <button class="button button-secondary edit-group-btn" data-group-id="${group.id}">Renomear</button>
+                            <button class="button button-danger delete-group-btn" data-group-id="${group.id}">Excluir</button>
+                        </div>`;
+                    groupListEl.appendChild(groupItem);
+                });
+            };
             
-            const applyAllFilters = () => {
+            // --- Filtros e Ações ---
+            const applyAllFilters = (searchTerm = null) => {
                 let result = [...state.clients];
-
-                const selectedState = filterStateEl.value;
-                if (selectedState) {
-                    result = result.filter(c => c.estado === selectedState);
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    result = result.filter(c => c.nome.toLowerCase().includes(term) || c.whatsapp.includes(term) || (c.cidade && c.cidade.toLowerCase().includes(term)));
+                } else {
+                    if (filterStateEl.value) result = result.filter(c => c.estado === filterStateEl.value);
+                    if (filterInactivityEl.value) {
+                        const now = new Date();
+                        result = result.filter(c => (now - new Date(c.dataUltimaCompra)) / (1000 * 3600 * 24) > filterInactivityEl.value);
+                    }
+                    if (filterBirthdayMonthEl.value) result = result.filter(c => c.dataNascimento && new Date(c.dataNascimento).getMonth() + 1 === +filterBirthdayMonthEl.value);
+                    if (filterLastPurchaseYearEl.value) result = result.filter(c => c.dataUltimaCompra && new Date(c.dataUltimaCompra).getFullYear() === +filterLastPurchaseYearEl.value);
                 }
-
-                const inactivityDays = parseInt(filterInactivityEl.value, 10);
-                if (!isNaN(inactivityDays) && inactivityDays > 0) {
-                    const now = new Date();
-                    result = result.filter(c => {
-                        const lastPurchase = new Date(c.dataUltimaCompra);
-                        const diffDays = (now - lastPurchase) / (1000 * 60 * 60 * 24);
-                        return diffDays > inactivityDays;
-                    });
-                }
-                
-                const selectedMonth = filterBirthdayMonthEl.value;
-                if (selectedMonth) {
-                    const monthIndex = parseInt(selectedMonth, 10);
-                    result = result.filter(c => {
-                        if (!c.dataNascimento) return false;
-                        const birthDate = new Date(c.dataNascimento);
-                        return birthDate.getMonth() + 1 === monthIndex;
-                    });
-                }
-                
-                const selectedYear = filterLastPurchaseYearEl.value;
-                if (selectedYear) {
-                    const year = parseInt(selectedYear, 10);
-                     result = result.filter(c => {
-                        if (!c.dataUltimaCompra) return false;
-                        const purchaseDate = new Date(c.dataUltimaCompra);
-                        return purchaseDate.getFullYear() === year;
-                    });
-                }
-
                 const sortBy = sortByEl.value;
                 result.sort((a, b) => {
-                    switch(sortBy) {
-                        case 'total_asc': return a.totalCompras - b.totalCompras;
-                        case 'inactive_desc': return new Date(a.dataUltimaCompra) - new Date(b.dataUltimaCompra);
-                        case 'inactive_asc': return new Date(b.dataUltimaCompra) - new Date(a.dataUltimaCompra);
-                        case 'total_desc':
-                        default:
-                            return b.totalCompras - a.totalCompras;
-                    }
+                    if (sortBy === 'favorites') return (b.isFavorite || 0) - (a.isFavorite || 0);
+                    if (sortBy === 'total_asc') return a.totalCompras - b.totalCompras;
+                    if (sortBy === 'inactive_desc') return new Date(a.dataUltimaCompra) - new Date(b.dataUltimaCompra);
+                    if (sortBy === 'inactive_asc') return new Date(b.dataUltimaCompra) - new Date(a.dataUltimaCompra);
+                    return b.totalCompras - a.totalCompras;
                 });
-                
                 state.filteredClients = result;
                 state.currentPage = 1;
                 filteredCountEl.textContent = `${result.length} cliente(s) encontrado(s).`;
@@ -1057,214 +995,69 @@
 
             const populateStateFilter = () => {
                 const states = [...new Set(state.clients.map(c => c.estado))].sort();
-                filterStateEl.innerHTML = '<option value="">Todos os Estados</option>';
-                states.forEach(stateName => {
-                    if(stateName && stateName.trim().length > 0) {
-                        const option = document.createElement('option');
-                        option.value = stateName;
-                        option.textContent = stateName;
-                        filterStateEl.appendChild(option);
-                    }
-                });
+                filterStateEl.innerHTML = '<option value="">Todos</option>';
+                states.forEach(s => { if (s && s.trim()) filterStateEl.innerHTML += `<option value="${s}">${s}</option>`; });
             };
-            
             const populateYearFilter = () => {
-                const years = [...new Set(state.clients.map(c => new Date(c.dataUltimaCompra).getFullYear()))].sort((a,b) => b - a);
+                const years = [...new Set(state.clients.map(c => new Date(c.dataUltimaCompra).getFullYear()))].sort((a, b) => b - a);
                 filterLastPurchaseYearEl.innerHTML = '<option value="">Todos</option>';
-                years.forEach(year => {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    filterLastPurchaseYearEl.appendChild(option);
-                });
-            }
-            
-            // --- Lógica de Grupos ---
-            
-            const renderGroups = () => {
-                groupListEl.innerHTML = '';
-                if (state.groups.length === 0) {
-                    groupListEl.innerHTML = '<p>Nenhum grupo criado ainda. Vá para a aba "Clientes", aplique filtros e crie seu primeiro grupo.</p>';
-                    return;
-                }
-                
-                state.groups.forEach(group => {
-                    const groupItem = document.createElement('div');
-                    groupItem.className = 'group-item';
-                    groupItem.innerHTML = `
-                        <div>
-                            <h3>${group.name}</h3>
-                            <p>${group.clientIds.length} cliente(s)</p>
-                        </div>
-                        <div class="group-actions">
-                            <button class="button button-secondary view-group-btn" data-group-id="${group.id}">Ver</button>
-                            <button class="button button-secondary edit-group-btn" data-group-id="${group.id}">Renomear</button>
-                            <button class="button button-danger delete-group-btn" data-group-id="${group.id}">Excluir</button>
-                        </div>
-                    `;
-                    groupListEl.appendChild(groupItem);
-                });
-            };
-            
-            const saveGroup = () => {
-                const name = groupNameInput.value.trim();
-                if (!name) {
-                    alert('Por favor, dê um nome ao grupo.');
-                    return;
-                }
-                
-                const newGroup = {
-                    id: Date.now(),
-                    name,
-                    clientIds: state.filteredClients.map(c => c.id)
-                };
-                
-                state.groups.push(newGroup);
-                saveDataToLocalStorage();
-                renderGroups();
-                createGroupModal.classList.remove('active');
-                navigateTo('groups');
-            };
-
-            const deleteGroup = (groupId) => {
-                if (confirm('Tem certeza que deseja excluir este grupo?')) {
-                    state.groups = state.groups.filter(g => g.id !== groupId);
-                    saveDataToLocalStorage();
-                    renderGroups();
-                }
-            };
-
-            const openRenameModal = (groupId) => {
-                const group = state.groups.find(g => g.id === groupId);
-                if (group) {
-                    renameGroupNameInput.value = group.name;
-                    renameGroupIdInput.value = group.id;
-                    renameGroupModal.classList.add('active');
-                }
-            };
-
-            const saveGroupName = () => {
-                const groupId = parseInt(renameGroupIdInput.value, 10);
-                const newName = renameGroupNameInput.value.trim();
-
-                if (!newName) {
-                    showNotification('O nome do grupo não pode ser vazio.', 'error');
-                    return;
-                }
-
-                const group = state.groups.find(g => g.id === groupId);
-                if (group) {
-                    group.name = newName;
-                    saveDataToLocalStorage();
-                    renderGroups();
-                    renameGroupModal.classList.remove('active');
-                    showNotification('Grupo renomeado com sucesso!');
-                }
-            };
-
-            const openViewGroupModal = (groupId) => {
-                const group = state.groups.find(g => g.id === groupId);
-                if (!group) return;
-
-                state.currentGroupIdToExport = group.id;
-                viewGroupNameEl.textContent = `Clientes do Grupo: ${group.name}`;
-                groupClientsTableBody.innerHTML = '';
-                
-                const clientsInGroup = group.clientIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
-
-                clientsInGroup.forEach(client => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${client.nome}</td>
-                        <td>${client.whatsapp}</td>
-                    `;
-                    groupClientsTableBody.appendChild(row);
-                });
-
-                viewGroupModal.classList.add('active');
-            };
-            
-            const exportGroupToCSV = (groupId) => {
-                const group = state.groups.find(g => g.id === groupId);
-                if (!group) return;
-
-                const clientsInGroup = group.clientIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
-
-                let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "Nome,WhatsApp\r\n";
-
-                clientsInGroup.forEach(client => {
-                    const formattedWhatsapp = `+55${client.whatsapp}`;
-                    csvContent += `${client.nome},${formattedWhatsapp}\r\n`;
-                });
-
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `grupo_${group.name.replace(/\s/g, '_')}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
-            
-            const exportFilteredClientsToCSV = () => {
-                if (state.filteredClients.length === 0) {
-                    showNotification('Nenhum cliente para exportar.', 'error');
-                    return;
-                }
-
-                let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "Nome,WhatsApp,Email\r\n";
-
-                state.filteredClients.forEach(client => {
-                    const formattedWhatsapp = `+55${client.whatsapp}`;
-                    csvContent += `${client.nome},${formattedWhatsapp},${client.email || ''}\r\n`;
-                });
-
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `clientes_filtrados.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                years.forEach(y => filterLastPurchaseYearEl.innerHTML += `<option value="${y}">${y}</option>`);
             };
 
             const filterTodayBirthdays = () => {
                 const today = new Date();
-                const currentDay = today.getDate();
-                const currentMonth = today.getMonth() + 1; // getMonth() is 0-indexed
-
+                const day = today.getDate();
+                const month = today.getMonth() + 1;
                 const result = state.clients.filter(c => {
                     if (!c.dataNascimento) return false;
                     const birthDate = new Date(c.dataNascimento);
-                    if (isNaN(birthDate.getTime())) return false;
-                    
-                    const birthDay = birthDate.getDate();
-                    const birthMonth = birthDate.getMonth() + 1;
-                    
-                    return birthDay === currentDay && birthMonth === currentMonth;
+                    return !isNaN(birthDate.getTime()) && birthDate.getDate() === day && birthDate.getMonth() + 1 === month;
                 });
-
-                // Limpa outros filtros da UI para evitar confusão
-                filterStateEl.value = '';
-                filterInactivityEl.value = '';
-                filterBirthdayMonthEl.value = '';
-                filterLastPurchaseYearEl.value = '';
-                sortByEl.value = 'total_desc'; // Reseta a ordenação
-
+                [filterStateEl, filterInactivityEl, filterBirthdayMonthEl, filterLastPurchaseYearEl].forEach(el => el.value = '');
+                sortByEl.value = 'total_desc';
                 state.filteredClients = result;
                 state.currentPage = 1;
-                filteredCountEl.textContent = `${result.length} aniversariante(s) encontrado(s) para hoje.`;
+                filteredCountEl.textContent = `${result.length} aniversariante(s) hoje.`;
                 createGroupBtn.disabled = result.length === 0;
                 exportClientsEmailBtn.disabled = result.length === 0;
                 renderClientsTable();
             };
 
+            const filterByInactivityRange = (minDays, maxDays = Infinity) => {
+                const now = new Date();
+                const result = state.clients.filter(c => {
+                    const diffDays = (now - new Date(c.dataUltimaCompra)) / (1000 * 3600 * 24);
+                    return diffDays >= minDays && diffDays < maxDays;
+                });
+                state.filteredClients = result;
+                state.currentPage = 1;
+                globalSearch.value = '';
+                [filterStateEl, filterInactivityEl, filterBirthdayMonthEl, filterLastPurchaseYearEl].forEach(el => el.value = '');
+                navigateTo('clients');
+                filteredCountEl.textContent = `${result.length} cliente(s) encontrado(s).`;
+                createGroupBtn.disabled = result.length === 0;
+                exportClientsEmailBtn.disabled = result.length === 0;
+                renderClientsTable();
+            };
+            
+            const openModal = (modalId) => modals[modalId].classList.add('active');
+            const closeModal = (modalId) => modals[modalId].classList.remove('active');
+            
+            const saveGroup = () => {
+                const name = groupNameInput.value.trim();
+                if (!name) return showNotification('Por favor, dê um nome ao grupo.', 'error');
+                const newGroup = { id: Date.now(), name, clientIds: state.filteredClients.map(c => c.id) };
+                state.groups.push(newGroup);
+                saveDataToLocalStorage();
+                renderGroups();
+                closeModal('createGroup');
+                navigateTo('groups');
+                showNotification('Grupo criado com sucesso!');
+            };
+
             const openClientDetailsModal = (clientId) => {
                 const client = state.clients.find(c => c.id === clientId);
                 if (!client) return;
-                
                 document.getElementById('client-detail-name').textContent = client.nome || 'N/A';
                 document.getElementById('client-detail-whatsapp').textContent = client.whatsapp || 'N/A';
                 document.getElementById('client-detail-email').textContent = client.email || 'N/A';
@@ -1275,78 +1068,207 @@
                 document.getElementById('client-detail-nascimento').textContent = client.dataNascimento ? new Date(client.dataNascimento).toLocaleDateString('pt-BR') : 'N/A';
                 document.getElementById('client-detail-ultima-compra').textContent = client.dataUltimaCompra ? new Date(client.dataUltimaCompra).toLocaleDateString('pt-BR') : 'N/A';
                 document.getElementById('client-detail-total-comprado').textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.totalCompras || 0);
+                openModal('viewClient');
+            };
 
-                viewClientModal.classList.add('active');
+            const openViewGroupModal = (groupId) => {
+                const group = state.groups.find(g => g.id === groupId);
+                if (!group) return;
+                state.currentGroupIdToExport = group.id;
+                viewGroupNameEl.textContent = `Clientes do Grupo: ${group.name}`;
+                groupClientsTableBody.innerHTML = '';
+                const clientsInGroup = group.clientIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
+                clientsInGroup.forEach(client => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${client.nome}</td><td>${client.whatsapp}</td>`;
+                    groupClientsTableBody.appendChild(row);
+                });
+                openModal('viewGroup');
+            };
+
+            const openRenameModal = (groupId) => {
+                const group = state.groups.find(g => g.id === groupId);
+                if (group) {
+                    renameGroupNameInput.value = group.name;
+                    renameGroupIdInput.value = group.id;
+                    openModal('renameGroup');
+                }
+            };
+            
+            const saveGroupName = () => {
+                const groupId = parseInt(renameGroupIdInput.value, 10);
+                const newName = renameGroupNameInput.value.trim();
+                if (!newName) return showNotification('O nome do grupo não pode ser vazio.', 'error');
+                const group = state.groups.find(g => g.id === groupId);
+                if (group) {
+                    group.name = newName;
+                    saveDataToLocalStorage();
+                    renderGroups();
+                    closeModal('renameGroup');
+                    showNotification('Grupo renomeado com sucesso!');
+                }
+            };
+
+            const exportGroupToCSV = (groupId) => {
+                const group = state.groups.find(g => g.id === groupId);
+                if (!group) return;
+                const clientsInGroup = group.clientIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
+                let csvContent = "data:text/csv;charset=utf-8,Nome,WhatsApp\r\n";
+                clientsInGroup.forEach(client => {
+                    csvContent += `"${client.nome.replace(/"/g, '""')}",+55${client.whatsapp}\r\n`;
+                });
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", `grupo_${group.name.replace(/\s/g, '_')}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const exportFilteredClientsToCSV = () => {
+                if (state.filteredClients.length === 0) return showNotification('Nenhum cliente para exportar.', 'error');
+                let csvContent = "data:text/csv;charset=utf-8,Nome,WhatsApp,Email\r\n";
+                state.filteredClients.forEach(client => {
+                    csvContent += `"${(client.nome || '').replace(/"/g, '""')}",+55${client.whatsapp},"${(client.email || '').replace(/"/g, '""')}"\r\n`;
+                });
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", `clientes_filtrados.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+            
+            const toggleFavorite = (clientId) => {
+                const client = state.clients.find(c => c.id === clientId);
+                if (client) { client.isFavorite = !client.isFavorite; saveDataToLocalStorage(); renderClientsTable(); }
+            };
+
+            // --- Dashboard & Relatórios ---
+            const renderDashboard = () => {
+                const ninetyDaysAgo = new Date().setDate(new Date().getDate() - 90);
+                const activeClients = state.clients.filter(c => new Date(c.dataUltimaCompra) > ninetyDaysAgo).length;
+                document.getElementById('db-total-clients').textContent = state.clients.length;
+                document.getElementById('db-active-inactive').textContent = `${activeClients} / ${state.clients.length - activeClients}`;
+                
+                const today = new Date();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1)); // start on monday
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+                const birthdayList = document.getElementById('db-birthday-list');
+                birthdayList.innerHTML = '';
+                const weeklyBirthdays = state.clients.filter(c => {
+                    if (!c.dataNascimento) return false;
+                    const birthDate = new Date(c.dataNascimento);
+                    const birthDay = birthDate.getDate();
+                    const birthMonth = birthDate.getMonth();
+                    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
+                        if (d.getDate() === birthDay && d.getMonth() === birthMonth) return true;
+                    }
+                    return false;
+                });
+                document.getElementById('db-birthday-week').textContent = weeklyBirthdays.length;
+                weeklyBirthdays.slice(0, 3).forEach(c => birthdayList.innerHTML += `<li>${c.nome}</li>`);
+                if (weeklyBirthdays.length === 0) birthdayList.innerHTML = `<li>Nenhum na semana.</li>`;
+                
+                const topClientsList = document.getElementById('db-top-clients');
+                topClientsList.innerHTML = '';
+                [...state.clients].sort((a,b) => b.totalCompras - a.totalCompras).slice(0,5).forEach(c => topClientsList.innerHTML += `<li>${c.nome}</li>`);
+            };
+            
+            const renderInactivityReport = () => {
+                const now = new Date();
+                const segments = {
+                    active: { label: "Compraram nos últimos 3 meses", count: 0, min: 0, max: 90 },
+                    warm: { label: "Inativos de 3 a 6 meses", count: 0, min: 90, max: 180 },
+                    cool: { label: "Inativos de 6 meses a 1 ano", count: 0, min: 180, max: 365 },
+                    cold: { label: "Inativos há mais de 1 ano", count: 0, min: 365, max: Infinity }
+                };
+
+                state.clients.forEach(c => {
+                    const diffDays = (now - new Date(c.dataUltimaCompra)) / (1000 * 3600 * 24);
+                    if (diffDays > 365) segments.cold.count++;
+                    else if (diffDays > 180) segments.cool.count++;
+                    else if (diffDays > 90) segments.warm.count++;
+                    else segments.active.count++;
+                });
+
+                inactivityReportGrid.innerHTML = Object.values(segments).map(s => `
+                    <div class="dashboard-card">
+                        <h3>${s.label}</h3>
+                        <p class="metric">${s.count}</p>
+                        <button class="button view-inactivity-group" data-min-days="${s.min}" data-max-days="${s.max}" style="margin-top: 1rem;">Ver Clientes</button>
+                    </div>
+                `).join('');
+            };
+
+            // --- Theme ---
+            const applyTheme = () => {
+                if (localStorage.getItem('crm_theme') === 'dark') document.body.classList.add('dark-mode');
+                else document.body.classList.remove('dark-mode');
             };
 
             // --- Event Listeners ---
             const setupEventListeners = () => {
-                mainNav.addEventListener('click', (e) => {
-                    if(e.target.closest('.nav-link')) {
-                        e.preventDefault();
-                        const viewName = e.target.closest('.nav-link').getAttribute('href').substring(1);
-                        navigateTo(viewName);
-                    }
-                });
-
+                mainNav.addEventListener('click', e => { if(e.target.closest('.nav-link')) { e.preventDefault(); navigateTo(e.target.closest('.nav-link').getAttribute('href').substring(1)); } });
+                menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+                globalSearch.addEventListener('input', e => { navigateTo('clients'); applyAllFilters(e.target.value); });
+                themeSwitcher.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('crm_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); });
                 uploadBox.addEventListener('click', () => fileInput.click());
-                fileInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0]));
-                uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.style.borderColor = 'var(--primary-color)'; });
-                uploadBox.addEventListener('dragleave', (e) => { e.preventDefault(); uploadBox.style.borderColor = 'var(--border-color)'; });
-                uploadBox.addEventListener('drop', (e) => { e.preventDefault(); handleFileUpload(e.dataTransfer.files[0]); });
-
-                applyFiltersBtn.addEventListener('click', applyAllFilters);
+                fileInput.addEventListener('change', e => handleFileUpload(e.target.files[0]));
+                ['dragover', 'drop'].forEach(evt => uploadBox.addEventListener(evt, e => e.preventDefault()));
+                uploadBox.addEventListener('drop', e => handleFileUpload(e.dataTransfer.files[0]));
+                applyFiltersBtn.addEventListener('click', () => applyAllFilters());
                 exportClientsEmailBtn.addEventListener('click', exportFilteredClientsToCSV);
                 filterTodayBirthdayBtn.addEventListener('click', filterTodayBirthdays);
-
-                createGroupBtn.addEventListener('click', () => {
-                    groupNameInput.value = '';
-                    groupClientCountEl.textContent = state.filteredClients.length;
-                    createGroupModal.classList.add('active');
-                });
-                closeModalBtn.addEventListener('click', () => createGroupModal.classList.remove('active'));
+                createGroupBtn.addEventListener('click', () => { groupNameInput.value = ''; groupClientCountEl.textContent = state.filteredClients.length; openModal('createGroup'); });
                 saveGroupBtn.addEventListener('click', saveGroup);
-                
-                groupListEl.addEventListener('click', (e) => {
+                groupListEl.addEventListener('click', e => {
+                    const target = e.target.closest('button');
+                    if (!target) return;
+                    const groupId = +target.dataset.groupId;
+                    if (target.classList.contains('delete-group-btn') && confirm('Excluir este grupo?')) { state.groups = state.groups.filter(g => g.id !== groupId); saveDataToLocalStorage(); renderGroups(); }
+                    if (target.classList.contains('view-group-btn')) { openViewGroupModal(groupId); }
+                    if (target.classList.contains('edit-group-btn')) { openRenameModal(groupId); }
+                });
+                clientsTableBody.addEventListener('click', e => {
                     const target = e.target;
-                    if(target.classList.contains('delete-group-btn')) {
-                        deleteGroup(parseInt(target.dataset.groupId, 10));
-                    }
-                    if(target.classList.contains('view-group-btn')) {
-                        openViewGroupModal(parseInt(target.dataset.groupId, 10));
-                    }
-                    if(target.classList.contains('edit-group-btn')) {
-                        openRenameModal(parseInt(target.dataset.groupId, 10));
-                    }
+                    if (target.closest('.view-details-btn')) openClientDetailsModal(+target.closest('.view-details-btn').dataset.clientId);
+                    if (target.closest('.favorite-star')) toggleFavorite(+target.closest('.favorite-star').dataset.clientId);
                 });
-
-                clientsTableBody.addEventListener('click', (e) => {
-                    const target = e.target.closest('.view-details-btn');
-                    if (target) {
-                        openClientDetailsModal(parseInt(target.dataset.clientId, 10));
-                    }
-                });
-
-                closeViewModalBtn.addEventListener('click', () => viewGroupModal.classList.remove('active'));
-                exportGroupBtn.addEventListener('click', () => {
-                    if (state.currentGroupIdToExport) exportGroupToCSV(state.currentGroupIdToExport);
-                });
-                
-                closeClientDetailModalBtn.addEventListener('click', () => viewClientModal.classList.remove('active'));
-
-                closeRenameModalBtn.addEventListener('click', () => renameGroupModal.classList.remove('active'));
+                document.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('active')));
                 renameGroupSaveBtn.addEventListener('click', saveGroupName);
-
-                resetDataBtn.addEventListener('click', () => {
-                    if(confirm('Isso apagará TODOS os clientes e grupos salvos. Deseja continuar?')) {
-                        localStorage.removeItem('crm_clients');
-                        localStorage.removeItem('crm_groups');
-                        window.location.reload();
+                exportGroupBtn.addEventListener('click', () => { if (state.currentGroupIdToExport) exportGroupToCSV(state.currentGroupIdToExport); });
+                resetDataBtn.addEventListener('click', () => { if(confirm('Isso apagará TODOS os dados. Deseja continuar?')) { localStorage.clear(); window.location.reload(); } });
+                
+                inactivityReportGrid.addEventListener('click', (e) => {
+                    const target = e.target.closest('.view-inactivity-group');
+                    if (target) {
+                        filterByInactivityRange(+target.dataset.minDays, +target.dataset.maxDays);
                     }
+                });
+
+                clientsTableBody.addEventListener('contextmenu', e => {
+                    e.preventDefault();
+                    const row = e.target.closest('tr');
+                    if (!row) return;
+                    state.contextClient = state.clients.find(c => c.id === +row.dataset.clientId);
+                    if(!state.contextClient) return;
+                    contextMenu.style.top = `${e.pageY}px`;
+                    contextMenu.style.left = `${e.pageX}px`;
+                    contextMenu.style.display = 'block';
+                });
+                document.addEventListener('click', () => contextMenu.style.display = 'none');
+                contextMenu.addEventListener('click', e => {
+                    if(!state.contextClient) return;
+                    const action = e.target.closest('li').id;
+                    if (action === 'ctx-whatsapp') window.open(`https://wa.me/55${state.contextClient.whatsapp}`, '_blank');
+                    if (action === 'ctx-email' && state.contextClient.email) window.location.href = `mailto:${state.contextClient.email}`;
+                    if (action === 'ctx-details') openClientDetailsModal(state.contextClient.id);
                 });
             };
-
-            // --- Inicia a Aplicação ---
             init();
         });
     </script>
