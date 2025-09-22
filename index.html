@@ -315,6 +315,21 @@
             overflow-y: auto;
         }
         
+        .client-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .client-details-grid p {
+            margin-bottom: 0;
+        }
+        .client-details-grid strong {
+            display: block;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -503,10 +518,19 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label for="filter-last-purchase-year">Ano da Última Compra</label>
+                            <select id="filter-last-purchase-year" class="form-control">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                              <button id="apply-filters" class="button" style="width:100%;">Aplicar Filtros</button>
                         </div>
                     </div>
-                     <button id="create-group-btn" class="button" disabled>Criar Grupo com Filtro Atual</button>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button id="create-group-btn" class="button" disabled>Criar Grupo com Filtro Atual</button>
+                        <button id="export-clients-email-btn" class="button button-secondary" disabled>Exportar com E-mail</button>
+                    </div>
                      <p id="filtered-count" style="margin-top: 0.5rem; color: var(--secondary-color);"></p>
 
                     <div class="table-responsive">
@@ -516,9 +540,9 @@
                                     <th>Nome</th>
                                     <th>WhatsApp</th>
                                     <th>Localização</th>
-                                    <th>Total Comprado</th>
                                     <th>Última Compra</th>
                                     <th>Data Nasc.</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -603,6 +627,28 @@
             <button id="export-group-btn" class="button" style="margin-top: 1.5rem;">Exportar (Nome e WhatsApp)</button>
         </div>
     </div>
+    
+    <!-- Modal para Ver Detalhes do Cliente -->
+    <div id="view-client-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 id="client-detail-name"></h3>
+                <button class="modal-close" id="close-client-detail-modal-btn">&times;</button>
+            </div>
+            <div class="client-details-grid">
+                <p><strong>WhatsApp:</strong> <span id="client-detail-whatsapp"></span></p>
+                <p><strong>E-mail:</strong> <span id="client-detail-email"></span></p>
+                <p><strong>CPF:</strong> <span id="client-detail-cpf"></span></p>
+                <p><strong>Endereço:</strong> <span id="client-detail-endereco"></span></p>
+                <p><strong>Cidade:</strong> <span id="client-detail-cidade"></span></p>
+                <p><strong>Estado:</strong> <span id="client-detail-estado"></span></p>
+                <p><strong>Data de Nascimento:</strong> <span id="client-detail-nascimento"></span></p>
+                <p><strong>Última Compra:</strong> <span id="client-detail-ultima-compra"></span></p>
+                <p><strong>Total Comprado:</strong> <span id="client-detail-total-comprado"></span></p>
+            </div>
+        </div>
+    </div>
+
 
     <div id="notification" class="notification"></div>
 
@@ -640,9 +686,11 @@
             const filterStateEl = document.getElementById('filter-state');
             const filterInactivityEl = document.getElementById('filter-inactivity');
             const filterBirthdayMonthEl = document.getElementById('filter-birthday-month');
+            const filterLastPurchaseYearEl = document.getElementById('filter-last-purchase-year');
             const applyFiltersBtn = document.getElementById('apply-filters');
             
             const createGroupBtn = document.getElementById('create-group-btn');
+            const exportClientsEmailBtn = document.getElementById('export-clients-email-btn');
             const groupListEl = document.getElementById('group-list');
             
             const createGroupModal = document.getElementById('create-group-modal');
@@ -662,6 +710,10 @@
             const renameGroupNameInput = document.getElementById('rename-group-name');
             const renameGroupIdInput = document.getElementById('rename-group-id');
             const renameGroupSaveBtn = document.getElementById('rename-group-save-btn');
+            
+            const viewClientModal = document.getElementById('view-client-modal');
+            const closeClientDetailModalBtn = document.getElementById('close-client-detail-modal-btn');
+
 
             const resetDataBtn = document.getElementById('reset-data');
             const notificationEl = document.getElementById('notification');
@@ -674,6 +726,7 @@
                 renderTotalClientCount();
                 if (state.clients.length > 0) {
                     populateStateFilter();
+                    populateYearFilter();
                     state.filteredClients = [...state.clients];
                     renderClientsTable();
                     renderGroups();
@@ -759,6 +812,7 @@
                              showNotification(`${addedCount} novos clientes adicionados. ${newClients.length - addedCount} duplicados ignorados.`);
                              
                              populateStateFilter();
+                             populateYearFilter();
                              applyAllFilters();
                              renderGroups();
                              renderTotalClientCount();
@@ -790,11 +844,16 @@
                 const fieldMappingConfig = {
                     nome: { aliases: ['nome', 'nome cliente', 'cliente', 'destinatário', 'razão social', 'nome fantasia'], index: -1, required: true },
                     whatsapp: { aliases: ['whatsapp', 'telefone 2', 'telefone', 'celular', 'telefone principal'], index: -1, required: true },
+                    email: { aliases: ['email', 'e-mail'], index: -1 },
+                    cpf: { aliases: ['cpf', 'cnpj', 'cpf/cnpj'], index: -1 },
+                    endereco: { aliases: ['endereço', 'endereco', 'endereco1'], index: -1 },
                     estado: { aliases: ['estado', 'uf'], index: -1 },
                     cidade: { aliases: ['cidade'], index: -1 },
                     totalCompras: { aliases: ['total compras', 'total com', 'valor total'], index: -1 },
-                    dataNascimento: { aliases: ['data nascimento', 'datanascimento(dd/mm/yyyy)'], index: -1 }
+                    dataNascimento: { aliases: ['data nascimento', 'datanascimento(dd/mm/yyyy)', 'data de aniversário'], index: -1 },
+                    dataUltimaCompra: { aliases: ['última compra', 'ultima compra'], index: -1 }
                 };
+
 
                 for (const fieldKey in fieldMappingConfig) {
                     const config = fieldMappingConfig[fieldKey];
@@ -813,7 +872,7 @@
                 }
                 
                 const normalizePhone = (phone) => phone ? phone.replace(/\D/g, '') : '';
-                const cleanData = (data) => data ? data.trim().replace(/"/g, '') : '';
+                const cleanData = (data) => data ? data.trim().replace(/"/g, '').replace(/'/g, '') : '';
                 const parseDate = (dateString) => {
                     if (!dateString) return null;
                     const parts = dateString.match(/(\d+)/g);
@@ -834,6 +893,9 @@
 
                     const nome = fieldMappingConfig.nome.index !== -1 ? cleanData(data[fieldMappingConfig.nome.index]) : 'N/A';
                     const whatsapp = fieldMappingConfig.whatsapp.index !== -1 ? normalizePhone(cleanData(data[fieldMappingConfig.whatsapp.index])) : '';
+                    const email = fieldMappingConfig.email.index !== -1 ? cleanData(data[fieldMappingConfig.email.index]) : '';
+                    const cpf = fieldMappingConfig.cpf.index !== -1 ? cleanData(data[fieldMappingConfig.cpf.index]) : '';
+                    const endereco = fieldMappingConfig.endereco.index !== -1 ? cleanData(data[fieldMappingConfig.endereco.index]) : '';
                     const estado = fieldMappingConfig.estado.index !== -1 ? cleanData(data[fieldMappingConfig.estado.index]) : 'N/A';
                     const cidade = fieldMappingConfig.cidade.index !== -1 ? cleanData(data[fieldMappingConfig.cidade.index]) : 'N/A';
                     
@@ -843,13 +905,22 @@
                         totalCompras = parseFloat(totalComprasRaw.replace(/[R$."]/g, '').replace(',', '.')) || 0;
                     }
                     
-                    const lastPurchase = new Date();
-                    lastPurchase.setDate(lastPurchase.getDate() - Math.floor(Math.random() * 365));
+                    let lastPurchase = null;
+                    const lastPurchaseRaw = fieldMappingConfig.dataUltimaCompra.index !== -1 ? cleanData(data[fieldMappingConfig.dataUltimaCompra.index]) : null;
+                    lastPurchase = parseDate(lastPurchaseRaw);
+                    if (!lastPurchase) {
+                        lastPurchase = new Date();
+                        lastPurchase.setDate(lastPurchase.getDate() - Math.floor(Math.random() * 365 * 2));
+                    }
                     
                     const birthDateRaw = fieldMappingConfig.dataNascimento.index !== -1 ? cleanData(data[fieldMappingConfig.dataNascimento.index]) : null;
                     const dataNascimento = parseDate(birthDateRaw);
 
-                    return { nome, whatsapp, estado, cidade, totalCompras, dataUltimaCompra: lastPurchase.toISOString(), dataNascimento: dataNascimento ? dataNascimento.toISOString() : null };
+                    return { 
+                        nome, whatsapp, email, cpf, endereco, estado, cidade, totalCompras, 
+                        dataUltimaCompra: lastPurchase.toISOString(), 
+                        dataNascimento: dataNascimento ? dataNascimento.toISOString() : null 
+                    };
                 });
 
                 return clientsData.filter(c => c.nome && c.nome !== 'N/A' && c.whatsapp && c.whatsapp.length >= 10);
@@ -884,9 +955,9 @@
                         <td>${client.nome}</td>
                         <td>${client.whatsapp}</td>
                         <td>${client.cidade || 'N/A'}, ${client.estado || 'N/A'}</td>
-                        <td>${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.totalCompras)}</td>
                         <td>${lastPurchaseDate.toLocaleDateString('pt-BR')}</td>
                         <td>${birthDate ? birthDate.toLocaleDateString('pt-BR') : 'N/A'}</td>
+                        <td><button class="button button-secondary view-details-btn" data-client-id="${client.id}">Ver</button></td>
                     `;
                     clientsTableBody.appendChild(row);
                 });
@@ -951,6 +1022,16 @@
                         return birthDate.getMonth() + 1 === monthIndex;
                     });
                 }
+                
+                const selectedYear = filterLastPurchaseYearEl.value;
+                if (selectedYear) {
+                    const year = parseInt(selectedYear, 10);
+                     result = result.filter(c => {
+                        if (!c.dataUltimaCompra) return false;
+                        const purchaseDate = new Date(c.dataUltimaCompra);
+                        return purchaseDate.getFullYear() === year;
+                    });
+                }
 
                 const sortBy = sortByEl.value;
                 result.sort((a, b) => {
@@ -968,6 +1049,7 @@
                 state.currentPage = 1;
                 filteredCountEl.textContent = `${result.length} cliente(s) encontrado(s).`;
                 createGroupBtn.disabled = result.length === 0;
+                exportClientsEmailBtn.disabled = result.length === 0;
                 renderClientsTable();
             };
 
@@ -983,6 +1065,17 @@
                     }
                 });
             };
+            
+            const populateYearFilter = () => {
+                const years = [...new Set(state.clients.map(c => new Date(c.dataUltimaCompra).getFullYear()))].sort((a,b) => b - a);
+                filterLastPurchaseYearEl.innerHTML = '<option value="">Todos</option>';
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    filterLastPurchaseYearEl.appendChild(option);
+                });
+            }
             
             // --- Lógica de Grupos ---
             
@@ -1111,6 +1204,47 @@
                 link.click();
                 document.body.removeChild(link);
             };
+            
+            const exportFilteredClientsToCSV = () => {
+                if (state.filteredClients.length === 0) {
+                    showNotification('Nenhum cliente para exportar.', 'error');
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Nome,WhatsApp,Email\r\n";
+
+                state.filteredClients.forEach(client => {
+                    const formattedWhatsapp = `+55${client.whatsapp}`;
+                    csvContent += `${client.nome},${formattedWhatsapp},${client.email || ''}\r\n`;
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `clientes_filtrados.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            const openClientDetailsModal = (clientId) => {
+                const client = state.clients.find(c => c.id === clientId);
+                if (!client) return;
+                
+                document.getElementById('client-detail-name').textContent = client.nome || 'N/A';
+                document.getElementById('client-detail-whatsapp').textContent = client.whatsapp || 'N/A';
+                document.getElementById('client-detail-email').textContent = client.email || 'N/A';
+                document.getElementById('client-detail-cpf').textContent = client.cpf || 'N/A';
+                document.getElementById('client-detail-endereco').textContent = client.endereco || 'N/A';
+                document.getElementById('client-detail-cidade').textContent = client.cidade || 'N/A';
+                document.getElementById('client-detail-estado').textContent = client.estado || 'N/A';
+                document.getElementById('client-detail-nascimento').textContent = client.dataNascimento ? new Date(client.dataNascimento).toLocaleDateString('pt-BR') : 'N/A';
+                document.getElementById('client-detail-ultima-compra').textContent = client.dataUltimaCompra ? new Date(client.dataUltimaCompra).toLocaleDateString('pt-BR') : 'N/A';
+                document.getElementById('client-detail-total-comprado').textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.totalCompras || 0);
+
+                viewClientModal.classList.add('active');
+            };
 
             // --- Event Listeners ---
             const setupEventListeners = () => {
@@ -1129,6 +1263,7 @@
                 uploadBox.addEventListener('drop', (e) => { e.preventDefault(); handleFileUpload(e.dataTransfer.files[0]); });
 
                 applyFiltersBtn.addEventListener('click', applyAllFilters);
+                exportClientsEmailBtn.addEventListener('click', exportFilteredClientsToCSV);
 
                 createGroupBtn.addEventListener('click', () => {
                     groupNameInput.value = '';
@@ -1151,10 +1286,19 @@
                     }
                 });
 
+                clientsTableBody.addEventListener('click', (e) => {
+                    const target = e.target.closest('.view-details-btn');
+                    if (target) {
+                        openClientDetailsModal(parseInt(target.dataset.clientId, 10));
+                    }
+                });
+
                 closeViewModalBtn.addEventListener('click', () => viewGroupModal.classList.remove('active'));
                 exportGroupBtn.addEventListener('click', () => {
                     if (state.currentGroupIdToExport) exportGroupToCSV(state.currentGroupIdToExport);
                 });
+                
+                closeClientDetailModalBtn.addEventListener('click', () => viewClientModal.classList.remove('active'));
 
                 closeRenameModalBtn.addEventListener('click', () => renameGroupModal.classList.remove('active'));
                 renameGroupSaveBtn.addEventListener('click', saveGroupName);
