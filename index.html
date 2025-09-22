@@ -989,7 +989,15 @@
                     if (foundAlias) config.index = headers.indexOf(foundAlias);
                     if (config.required && config.index === -1) throw new Error(`Coluna obrigatória não encontrada: "${config.aliases.join('", "')}"`);
                 }
-                const normalizePhone = (phone) => phone ? phone.replace(/\D/g, '') : '';
+                const normalizePhone = (phone) => {
+                    if (!phone) return '';
+                    let cleanPhone = phone.replace(/\D/g, '');
+                    if (cleanPhone.startsWith('55') && cleanPhone.length > 11) {
+                         // Mantém o 55 se já tiver, mas garante que não haja mais de um
+                        return cleanPhone;
+                    }
+                    return cleanPhone;
+                };
                 const cleanData = (data) => data ? data.trim().replace(/"/g, '').replace(/'/g, '') : '';
                 const parseDate = (dateString) => {
                     if (!dateString) return null;
