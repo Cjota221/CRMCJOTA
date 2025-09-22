@@ -290,6 +290,7 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
         }
+        textarea.form-control { min-height: 100px; resize: vertical; }
 
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
@@ -344,8 +345,14 @@
         .modal-content {
             background-color: var(--surface-color); padding: 2rem; border-radius: var(--border-radius);
             width: 90%; max-width: 500px; animation: slideIn 0.3s; box-shadow: var(--shadow-md);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
-        .modal-content-large { max-width: 950px; width: 95%; height: 90vh; display: flex; flex-direction: column; }
+        .modal-body {
+            overflow-y: auto;
+        }
+        .modal-content-large { max-width: 950px; width: 95%; height: 90vh; }
         .modal-content-large .table-responsive { flex-grow: 1; overflow-y: auto; }
         .client-details-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;
@@ -354,10 +361,37 @@
         .client-details-grid strong {
             display: block; color: var(--secondary-color); font-size: 0.9rem; margin-bottom: 0.25rem;
         }
+        
+        #client-notes-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        #client-detail-notes-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+        .note-item {
+            background-color: var(--background-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+        }
+        .note-item p {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .note-item .note-date {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            margin-top: 0.5rem;
+            text-align: right;
+        }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;}
         .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
 
         /* Context Menu */
@@ -683,16 +717,27 @@
     <div id="view-client-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header"><h3 id="client-detail-name"></h3><button class="modal-close">&times;</button></div>
-            <div class="client-details-grid">
-                <p><strong>WhatsApp:</strong> <span id="client-detail-whatsapp"></span></p>
-                <p><strong>E-mail:</strong> <span id="client-detail-email"></span></p>
-                <p><strong>CPF:</strong> <span id="client-detail-cpf"></span></p>
-                <p><strong>Endereço:</strong> <span id="client-detail-endereco"></span></p>
-                <p><strong>Cidade:</strong> <span id="client-detail-cidade"></span></p>
-                <p><strong>Estado:</strong> <span id="client-detail-estado"></span></p>
-                <p><strong>Data de Nascimento:</strong> <span id="client-detail-nascimento"></span></p>
-                <p><strong>Última Compra:</strong> <span id="client-detail-ultima-compra"></span></p>
-                <p><strong>Total Comprado:</strong> <span id="client-detail-total-comprado"></span></p>
+            <div class="modal-body">
+                <div class="client-details-grid">
+                    <p><strong>WhatsApp:</strong> <span id="client-detail-whatsapp"></span></p>
+                    <p><strong>E-mail:</strong> <span id="client-detail-email"></span></p>
+                    <p><strong>CPF:</strong> <span id="client-detail-cpf"></span></p>
+                    <p><strong>Endereço:</strong> <span id="client-detail-endereco"></span></p>
+                    <p><strong>Cidade:</strong> <span id="client-detail-cidade"></span></p>
+                    <p><strong>Estado:</strong> <span id="client-detail-estado"></span></p>
+                    <p><strong>Data de Nascimento:</strong> <span id="client-detail-nascimento"></span></p>
+                    <p><strong>Última Compra:</strong> <span id="client-detail-ultima-compra"></span></p>
+                    <p><strong>Total Comprado:</strong> <span id="client-detail-total-comprado"></span></p>
+                </div>
+                <div id="client-notes-section">
+                    <h3>Histórico e Observações</h3>
+                    <div id="client-detail-notes-list"></div>
+                    <div class="form-group">
+                        <label for="client-note-input">Adicionar Observação</label>
+                        <textarea id="client-note-input" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button id="save-client-note-btn" class="button">Salvar Observação</button>
+                </div>
             </div>
         </div>
     </div>
@@ -710,7 +755,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Estado da Aplicação ---
-            const state = { clients: [], groups: [], importHistory: [], filteredClients: [], currentPage: 1, rowsPerPage: 100, currentGroupIdToExport: null, contextClient: null };
+            const state = { clients: [], groups: [], importHistory: [], filteredClients: [], currentPage: 1, rowsPerPage: 100, currentGroupIdToExport: null, contextClient: null, currentClientInModal: null };
 
             // --- Seletores de DOM ---
             const app = document.getElementById('app');
@@ -761,6 +806,7 @@
             const renameGroupNameInput = document.getElementById('rename-group-name');
             const renameGroupIdInput = document.getElementById('rename-group-id');
             const renameGroupSaveBtn = document.getElementById('rename-group-save-btn');
+            const saveClientNoteBtn = document.getElementById('save-client-note-btn');
             const contextMenu = document.getElementById('context-menu');
             const resetDataBtn = document.getElementById('reset-data');
             const notificationEl = document.getElementById('notification');
@@ -842,7 +888,6 @@
                         const csvText = event.target.result;
                         processAndMergeData(csvText, file.name);
                         
-                        // Adiciona ao histórico
                         state.importHistory.push({ filename: file.name, date: new Date().toISOString(), content: csvText });
                         saveDataToLocalStorage();
                         
@@ -905,14 +950,13 @@
 
             const syncAllData = () => {
                 showNotification('Sincronizando todos os dados...');
-                // Reseta os clientes para reprocessar
                 state.clients = [];
                 const historyCopy = [...state.importHistory];
-                state.importHistory = []; // Limpa o histórico para não duplicar
+                state.importHistory = [];
                 
                 historyCopy.forEach(item => {
                     processAndMergeData(item.content, item.filename);
-                    state.importHistory.push({ filename: item.filename, date: item.date, content: item.content }); // Adiciona de volta
+                    state.importHistory.push({ filename: item.filename, date: item.date, content: item.content });
                 });
                 
                 saveDataToLocalStorage();
@@ -974,7 +1018,7 @@
                         totalCompras = parseFloat(totalComprasRaw.replace(/[R$."]/g, '').replace(',', '.')) || 0;
                     }
                     return {
-                        nome, whatsapp, isFavorite: false,
+                        nome, whatsapp, isFavorite: false, notes: [],
                         email: fieldMappingConfig.email.index !== -1 ? cleanData(data[fieldMappingConfig.email.index]) : '',
                         cpf: fieldMappingConfig.cpf.index !== -1 ? cleanData(data[fieldMappingConfig.cpf.index]) : '',
                         endereco: fieldMappingConfig.endereco.index !== -1 ? cleanData(data[fieldMappingConfig.endereco.index]) : '',
@@ -1160,6 +1204,9 @@
             const openClientDetailsModal = (clientId) => {
                 const client = state.clients.find(c => c.id === clientId);
                 if (!client) return;
+                
+                state.currentClientInModal = clientId;
+                
                 document.getElementById('client-detail-name').textContent = client.nome || 'N/A';
                 document.getElementById('client-detail-whatsapp').textContent = client.whatsapp || 'N/A';
                 document.getElementById('client-detail-email').textContent = client.email || 'N/A';
@@ -1170,7 +1217,48 @@
                 document.getElementById('client-detail-nascimento').textContent = client.dataNascimento ? new Date(client.dataNascimento).toLocaleDateString('pt-BR') : 'N/A';
                 document.getElementById('client-detail-ultima-compra').textContent = client.dataUltimaCompra ? new Date(client.dataUltimaCompra).toLocaleDateString('pt-BR') : 'N/A';
                 document.getElementById('client-detail-total-comprado').textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.totalCompras || 0);
+
+                renderClientNotes(clientId);
                 openModal('viewClient');
+            };
+
+            const renderClientNotes = (clientId) => {
+                const client = state.clients.find(c => c.id === clientId);
+                const notesList = document.getElementById('client-detail-notes-list');
+                notesList.innerHTML = '';
+
+                if (client && client.notes && client.notes.length > 0) {
+                    [...client.notes].reverse().forEach(note => {
+                        const noteEl = document.createElement('div');
+                        noteEl.className = 'note-item';
+                        const noteDate = new Date(note.date);
+                        noteEl.innerHTML = `
+                            <p>${note.text}</p>
+                            <div class="note-date">${noteDate.toLocaleDateString()} ${noteDate.toLocaleTimeString()}</div>
+                        `;
+                        notesList.appendChild(noteEl);
+                    });
+                } else {
+                    notesList.innerHTML = '<p>Nenhuma observação ainda.</p>';
+                }
+            };
+            
+            const saveClientNote = () => {
+                const clientId = state.currentClientInModal;
+                const noteInput = document.getElementById('client-note-input');
+                const noteText = noteInput.value.trim();
+
+                if (!clientId || !noteText) return;
+
+                const client = state.clients.find(c => c.id === clientId);
+                if (client) {
+                    if (!client.notes) client.notes = [];
+                    client.notes.push({ text: noteText, date: new Date().toISOString() });
+                    saveDataToLocalStorage();
+                    renderClientNotes(clientId);
+                    noteInput.value = '';
+                    showNotification('Observação salva!');
+                }
             };
 
             const openViewGroupModal = (groupId) => {
@@ -1342,6 +1430,7 @@
                     if (target.closest('.favorite-star')) toggleFavorite(+target.closest('.favorite-star').dataset.clientId);
                 });
                 document.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('active')));
+                saveClientNoteBtn.addEventListener('click', saveClientNote);
                 renameGroupSaveBtn.addEventListener('click', saveGroupName);
                 exportGroupBtn.addEventListener('click', () => { if (state.currentGroupIdToExport) exportGroupToCSV(state.currentGroupIdToExport); });
                 resetDataBtn.addEventListener('click', () => { if(confirm('Isso apagará TODOS os dados. Deseja continuar?')) { localStorage.clear(); window.location.reload(); } });
@@ -1377,5 +1466,4 @@
     </script>
 </body>
 </html>
-
 
