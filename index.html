@@ -1305,7 +1305,11 @@
                 const clientsInGroup = group.clientIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
                 let csvContent = "data:text/csv;charset=utf-8,Nome,WhatsApp\r\n";
                 clientsInGroup.forEach(client => {
-                    csvContent += `"${client.nome.replace(/"/g, '""')}",+55${client.whatsapp}\r\n`;
+                    let phone = client.whatsapp.replace(/\D/g, '');
+                    if (!phone.startsWith('55')) {
+                        phone = `55${phone}`;
+                    }
+                    csvContent += `"${client.nome.replace(/"/g, '""')}",+${phone}\r\n`;
                 });
                 const link = document.createElement("a");
                 link.setAttribute("href", encodeURI(csvContent));
@@ -1319,7 +1323,11 @@
                 if (state.filteredClients.length === 0) return showNotification('Nenhum cliente para exportar.', 'error');
                 let csvContent = "data:text/csv;charset=utf-8,Nome,WhatsApp,Email\r\n";
                 state.filteredClients.forEach(client => {
-                    csvContent += `"${(client.nome || '').replace(/"/g, '""')}",+55${client.whatsapp},"${(client.email || '').replace(/"/g, '""')}"\r\n`;
+                    let phone = client.whatsapp.replace(/\D/g, '');
+                    if (!phone.startsWith('55')) {
+                        phone = `55${phone}`;
+                    }
+                    csvContent += `"${(client.nome || '').replace(/"/g, '""')}",+${phone},"${(client.email || '').replace(/"/g, '""')}"\r\n`;
                 });
                 const link = document.createElement("a");
                 link.setAttribute("href", encodeURI(csvContent));
