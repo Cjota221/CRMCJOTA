@@ -532,7 +532,7 @@
                         <div id="upload-box" class="upload-box" style="cursor: pointer;">
                             <input type="file" id="csv-file-input" accept=".csv">
                             <h3>Clique ou arraste o arquivo aqui</h3>
-                            <p>O sistema identifica contatos duplicados pelo WhatsApp e os ignora.</p>
+                            <p>O sistema identifica contatos duplicados e atualiza com os dados mais recentes.</p>
                         </div>
                          <div id="loading-spinner" style="display: none; text-align: center; margin-top: 1rem;">
                             <p>Processando, por favor aguarde...</p>
@@ -797,23 +797,48 @@
                 reader.onload = (event) => {
                     try {
                         const newClients = processCSV(event.target.result);
-                        const existingPhones = new Set(state.clients.map(c => c.whatsapp));
                         let addedCount = 0;
+                        let updatedCount = 0;
                         let maxId = state.clients.length > 0 ? Math.max(...state.clients.map(c => c.id)) : 0;
+
                         newClients.forEach(newClient => {
-                            if (newClient.whatsapp && !existingPhones.has(newClient.whatsapp)) {
+                            if (!newClient.whatsapp) return;
+
+                            const existingClient = state.clients.find(c => c.whatsapp === newClient.whatsapp);
+                            if (existingClient) {
+                                let wasUpdated = false;
+                                const newPurchaseDate = new Date(newClient.dataUltimaCompra);
+                                const existingPurchaseDate = new Date(existingClient.dataUltimaCompra);
+
+                                if (newPurchaseDate > existingPurchaseDate) {
+                                    existingClient.dataUltimaCompra = newClient.dataUltimaCompra;
+                                    existingClient.totalCompras = newClient.totalCompras; // Assume o novo total se a data for mais recente
+                                    wasUpdated = true;
+                                }
+
+                                // Preenche campos vazios com novos dados se disponíveis
+                                for (const key of ['email', 'cpf', 'endereco', 'cidade', 'estado', 'dataNascimento']) {
+                                    if (!existingClient[key] && newClient[key]) {
+                                        existingClient[key] = newClient[key];
+                                        wasUpdated = true;
+                                    }
+                                }
+
+                                if (wasUpdated) {
+                                    updatedCount++;
+                                }
+                            } else {
                                 newClient.id = ++maxId;
                                 state.clients.push(newClient);
-                                existingPhones.add(newClient.whatsapp);
                                 addedCount++;
                             }
                         });
+
                         saveDataToLocalStorage();
                         setTimeout(() => {
                              loadingSpinner.style.display = 'none';
                              uploadBox.style.display = 'block';
-                             showNotification(`${addedCount} novos clientes adicionados. ${newClients.length - addedCount} duplicados ignorados.`);
-                             
+                             showNotification(`${addedCount} novos clientes adicionados. ${updatedCount} clientes atualizados.`);
                              populateStateFilter();
                              populateYearFilter();
                              applyAllFilters();
@@ -1188,9 +1213,9 @@
 
                 state.clients.forEach(c => {
                     const diffDays = (now - new Date(c.dataUltimaCompra)) / (1000 * 3600 * 24);
-                    if (diffDays > 365) segments.cold.count++;
-                    else if (diffDays > 180) segments.cool.count++;
-                    else if (diffDays > 90) segments.warm.count++;
+                    if (diffDays >= 365) segments.cold.count++;
+                    else if (diffDays >= 180) segments.cool.count++;
+                    else if (diffDays >= 90) segments.warm.count++;
                     else segments.active.count++;
                 });
 
