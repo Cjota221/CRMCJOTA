@@ -269,6 +269,7 @@
             border-radius: var(--border-radius);
             margin-bottom: 1rem;
             transition: box-shadow 0.2s;
+        }
         #groups-view .group-item .group-actions {
             display: flex;
             gap: 0.5rem;
@@ -484,6 +485,24 @@
                             <input type="number" id="filter-inactivity" class="form-control" placeholder="Ex: 90">
                         </div>
                         <div class="form-group">
+                            <label for="filter-birthday-month">Mês do Aniversário</label>
+                            <select id="filter-birthday-month" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                              <button id="apply-filters" class="button" style="width:100%;">Aplicar Filtros</button>
                         </div>
                     </div>
@@ -499,6 +518,7 @@
                                     <th>Localização</th>
                                     <th>Total Comprado</th>
                                     <th>Última Compra</th>
+                                    <th>Data Nasc.</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -619,6 +639,7 @@
             const sortByEl = document.getElementById('sort-by');
             const filterStateEl = document.getElementById('filter-state');
             const filterInactivityEl = document.getElementById('filter-inactivity');
+            const filterBirthdayMonthEl = document.getElementById('filter-birthday-month');
             const applyFiltersBtn = document.getElementById('apply-filters');
             
             const createGroupBtn = document.getElementById('create-group-btn');
@@ -771,7 +792,8 @@
                     whatsapp: { aliases: ['whatsapp', 'telefone 2', 'telefone', 'celular', 'telefone principal'], index: -1, required: true },
                     estado: { aliases: ['estado', 'uf'], index: -1 },
                     cidade: { aliases: ['cidade'], index: -1 },
-                    totalCompras: { aliases: ['total compras', 'total com', 'valor total'], index: -1 }
+                    totalCompras: { aliases: ['total compras', 'total com', 'valor total'], index: -1 },
+                    dataNascimento: { aliases: ['data nascimento', 'datanascimento(dd/mm/yyyy)'], index: -1 }
                 };
 
                 for (const fieldKey in fieldMappingConfig) {
@@ -792,6 +814,20 @@
                 
                 const normalizePhone = (phone) => phone ? phone.replace(/\D/g, '') : '';
                 const cleanData = (data) => data ? data.trim().replace(/"/g, '') : '';
+                const parseDate = (dateString) => {
+                    if (!dateString) return null;
+                    const parts = dateString.match(/(\d+)/g);
+                    if (!parts || parts.length < 3) return null;
+                    // Tenta dd/mm/yyyy
+                    if (parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
+                        return new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                     // Tenta yyyy/mm/dd
+                    if (parts[0].length === 4 && parts[1].length <= 2 && parts[2].length <= 2) {
+                        return new Date(parts[0], parts[1] - 1, parts[2]);
+                    }
+                    return null;
+                };
 
                 const clientsData = dataLines.map(line => {
                     const data = line.split(delimiter);
@@ -809,8 +845,11 @@
                     
                     const lastPurchase = new Date();
                     lastPurchase.setDate(lastPurchase.getDate() - Math.floor(Math.random() * 365));
+                    
+                    const birthDateRaw = fieldMappingConfig.dataNascimento.index !== -1 ? cleanData(data[fieldMappingConfig.dataNascimento.index]) : null;
+                    const dataNascimento = parseDate(birthDateRaw);
 
-                    return { nome, whatsapp, estado, cidade, totalCompras, dataUltimaCompra: lastPurchase.toISOString() };
+                    return { nome, whatsapp, estado, cidade, totalCompras, dataUltimaCompra: lastPurchase.toISOString(), dataNascimento: dataNascimento ? dataNascimento.toISOString() : null };
                 });
 
                 return clientsData.filter(c => c.nome && c.nome !== 'N/A' && c.whatsapp && c.whatsapp.length >= 10);
@@ -828,7 +867,7 @@
             const renderClientsTable = () => {
                 clientsTableBody.innerHTML = '';
                 if (state.filteredClients.length === 0) {
-                     clientsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum cliente encontrado com os filtros atuais.</td></tr>';
+                     clientsTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum cliente encontrado com os filtros atuais.</td></tr>';
                      renderPagination();
                      return;
                 }
@@ -840,12 +879,14 @@
                 paginatedClients.forEach(client => {
                     const row = document.createElement('tr');
                     const lastPurchaseDate = new Date(client.dataUltimaCompra);
+                    const birthDate = client.dataNascimento ? new Date(client.dataNascimento) : null;
                     row.innerHTML = `
                         <td>${client.nome}</td>
                         <td>${client.whatsapp}</td>
                         <td>${client.cidade || 'N/A'}, ${client.estado || 'N/A'}</td>
                         <td>${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.totalCompras)}</td>
                         <td>${lastPurchaseDate.toLocaleDateString('pt-BR')}</td>
+                        <td>${birthDate ? birthDate.toLocaleDateString('pt-BR') : 'N/A'}</td>
                     `;
                     clientsTableBody.appendChild(row);
                 });
@@ -898,6 +939,16 @@
                         const lastPurchase = new Date(c.dataUltimaCompra);
                         const diffDays = (now - lastPurchase) / (1000 * 60 * 60 * 24);
                         return diffDays > inactivityDays;
+                    });
+                }
+                
+                const selectedMonth = filterBirthdayMonthEl.value;
+                if (selectedMonth) {
+                    const monthIndex = parseInt(selectedMonth, 10);
+                    result = result.filter(c => {
+                        if (!c.dataNascimento) return false;
+                        const birthDate = new Date(c.dataNascimento);
+                        return birthDate.getMonth() + 1 === monthIndex;
                     });
                 }
 
@@ -1123,5 +1174,4 @@
     </script>
 </body>
 </html>
-
 
