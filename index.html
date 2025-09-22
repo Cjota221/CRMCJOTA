@@ -530,6 +530,7 @@
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <button id="create-group-btn" class="button" disabled>Criar Grupo com Filtro Atual</button>
                         <button id="export-clients-email-btn" class="button button-secondary" disabled>Exportar com E-mail</button>
+                        <button id="filter-today-birthday-btn" class="button button-secondary">Aniversariantes de Hoje</button>
                     </div>
                      <p id="filtered-count" style="margin-top: 0.5rem; color: var(--secondary-color);"></p>
 
@@ -691,6 +692,7 @@
             
             const createGroupBtn = document.getElementById('create-group-btn');
             const exportClientsEmailBtn = document.getElementById('export-clients-email-btn');
+            const filterTodayBirthdayBtn = document.getElementById('filter-today-birthday-btn');
             const groupListEl = document.getElementById('group-list');
             
             const createGroupModal = document.getElementById('create-group-modal');
@@ -1226,7 +1228,38 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            }
+            };
+
+            const filterTodayBirthdays = () => {
+                const today = new Date();
+                const currentDay = today.getDate();
+                const currentMonth = today.getMonth() + 1; // getMonth() is 0-indexed
+
+                const result = state.clients.filter(c => {
+                    if (!c.dataNascimento) return false;
+                    const birthDate = new Date(c.dataNascimento);
+                    if (isNaN(birthDate.getTime())) return false;
+                    
+                    const birthDay = birthDate.getDate();
+                    const birthMonth = birthDate.getMonth() + 1;
+                    
+                    return birthDay === currentDay && birthMonth === currentMonth;
+                });
+
+                // Limpa outros filtros da UI para evitar confusão
+                filterStateEl.value = '';
+                filterInactivityEl.value = '';
+                filterBirthdayMonthEl.value = '';
+                filterLastPurchaseYearEl.value = '';
+                sortByEl.value = 'total_desc'; // Reseta a ordenação
+
+                state.filteredClients = result;
+                state.currentPage = 1;
+                filteredCountEl.textContent = `${result.length} aniversariante(s) encontrado(s) para hoje.`;
+                createGroupBtn.disabled = result.length === 0;
+                exportClientsEmailBtn.disabled = result.length === 0;
+                renderClientsTable();
+            };
 
             const openClientDetailsModal = (clientId) => {
                 const client = state.clients.find(c => c.id === clientId);
@@ -1264,6 +1297,7 @@
 
                 applyFiltersBtn.addEventListener('click', applyAllFilters);
                 exportClientsEmailBtn.addEventListener('click', exportFilteredClientsToCSV);
+                filterTodayBirthdayBtn.addEventListener('click', filterTodayBirthdays);
 
                 createGroupBtn.addEventListener('click', () => {
                     groupNameInput.value = '';
