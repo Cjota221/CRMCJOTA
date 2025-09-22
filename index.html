@@ -312,7 +312,7 @@
         #upload-view input[type="file"] { display: none; }
 
         #clients-view .filters-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1.5rem; margin-bottom: 1.5rem; align-items: end;
         }
         
@@ -625,9 +625,17 @@
                                     <option value="favorites">Favoritos</option>
                                 </select>
                             </div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label for="filter-state">Filtrar por Estado</label>
                                 <select id="filter-state" class="form-control"><option value="">Todos</option></select>
+                            </div>
+                             <div class="form-group">
+                                <label for="filter-min-purchase">Valor Mínimo Compra</label>
+                                <input type="number" id="filter-min-purchase" class="form-control" placeholder="Ex: 3000">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-max-purchase">Valor Máximo Compra</label>
+                                <input type="number" id="filter-max-purchase" class="form-control" placeholder="Ex: 200">
                             </div>
                             <div class="form-group">
                                 <label for="filter-inactivity">Inativos há (dias)</label>
@@ -787,6 +795,8 @@
             const filteredCountEl = document.getElementById('filtered-count');
             const sortByEl = document.getElementById('sort-by');
             const filterStateEl = document.getElementById('filter-state');
+            const filterMinPurchaseEl = document.getElementById('filter-min-purchase');
+            const filterMaxPurchaseEl = document.getElementById('filter-max-purchase');
             const filterInactivityEl = document.getElementById('filter-inactivity');
             const filterBirthdayMonthEl = document.getElementById('filter-birthday-month');
             const filterLastPurchaseYearEl = document.getElementById('filter-last-purchase-year');
@@ -1132,6 +1142,14 @@
                     result = result.filter(c => c.nome.toLowerCase().includes(term) || c.whatsapp.includes(term) || (c.cidade && c.cidade.toLowerCase().includes(term)));
                 } else {
                     if (filterStateEl.value) result = result.filter(c => c.estado === filterStateEl.value);
+                    const minPurchase = parseFloat(filterMinPurchaseEl.value);
+                    if (!isNaN(minPurchase)) {
+                        result = result.filter(c => c.totalCompras >= minPurchase);
+                    }
+                    const maxPurchase = parseFloat(filterMaxPurchaseEl.value);
+                    if (!isNaN(maxPurchase)) {
+                        result = result.filter(c => c.totalCompras <= maxPurchase);
+                    }
                     if (filterInactivityEl.value) {
                         const now = new Date();
                         result = result.filter(c => (now - new Date(c.dataUltimaCompra)) / (1000 * 3600 * 24) > filterInactivityEl.value);
@@ -1175,7 +1193,7 @@
                     const birthDate = new Date(c.dataNascimento);
                     return !isNaN(birthDate.getTime()) && birthDate.getDate() === day && birthDate.getMonth() + 1 === month;
                 });
-                [filterStateEl, filterInactivityEl, filterBirthdayMonthEl, filterLastPurchaseYearEl].forEach(el => el.value = '');
+                [filterStateEl, filterInactivityEl, filterMinPurchaseEl, filterMaxPurchaseEl, filterBirthdayMonthEl, filterLastPurchaseYearEl].forEach(el => el.value = '');
                 sortByEl.value = 'total_desc';
                 state.filteredClients = result;
                 state.currentPage = 1;
@@ -1194,7 +1212,7 @@
                 state.filteredClients = result;
                 state.currentPage = 1;
                 globalSearch.value = '';
-                [filterStateEl, filterInactivityEl, filterBirthdayMonthEl, filterLastPurchaseYearEl].forEach(el => el.value = '');
+                [filterStateEl, filterInactivityEl, filterMinPurchaseEl, filterMaxPurchaseEl, filterBirthdayMonthEl, filterLastPurchaseYearEl].forEach(el => el.value = '');
                 navigateTo('clients');
                 filteredCountEl.textContent = `${result.length} cliente(s) encontrado(s).`;
                 createGroupBtn.disabled = result.length === 0;
