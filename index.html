@@ -301,6 +301,19 @@
             animation: slideIn 0.3s;
         }
         
+        .modal-content-large {
+            max-width: 950px;
+            width: 95%;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content-large .table-responsive {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -535,7 +548,7 @@
     
     <!-- Modal para Ver Clientes do Grupo -->
     <div id="view-group-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content modal-content-large">
             <div class="modal-header">
                 <h3 id="view-group-name"></h3>
                 <button class="modal-close" id="close-view-modal-btn">&times;</button>
@@ -546,13 +559,12 @@
                         <tr>
                             <th>Nome</th>
                             <th>WhatsApp</th>
-                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-            <button id="export-group-btn" class="button" style="margin-top: 1.5rem;">Exportar para .CSV</button>
+            <button id="export-group-btn" class="button" style="margin-top: 1.5rem;">Exportar (Nome e WhatsApp)</button>
         </div>
     </div>
 
@@ -968,7 +980,6 @@
                     row.innerHTML = `
                         <td>${client.nome}</td>
                         <td>${client.whatsapp}</td>
-                        <td>${client.estado}</td>
                     `;
                     groupClientsTableBody.appendChild(row);
                 });
@@ -983,11 +994,11 @@
                 const clientsInGroup = group.clientIds.map(id => state.clients.find(c => c.id === id)).filter(Boolean);
 
                 let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "Nome,WhatsApp,Estado\r\n";
+                csvContent += "Nome,WhatsApp\r\n";
 
                 clientsInGroup.forEach(client => {
                     const formattedWhatsapp = `+55${client.whatsapp}`;
-                    csvContent += `${client.nome},${formattedWhatsapp},${client.estado}\r\n`;
+                    csvContent += `${client.nome},${formattedWhatsapp}\r\n`;
                 });
 
                 const encodedUri = encodeURI(csvContent);
