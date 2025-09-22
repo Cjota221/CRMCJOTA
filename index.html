@@ -813,14 +813,13 @@
                              loadingSpinner.style.display = 'none';
                              uploadBox.style.display = 'block';
                              showNotification(`${addedCount} novos clientes adicionados. ${newClients.length - addedCount} duplicados ignorados.`);
+                             
                              populateStateFilter();
                              populateYearFilter();
                              applyAllFilters();
                              renderGroups();
-                             if (state.clients.length > 0) {
-                                renderDashboard();
-                                navigateTo('dashboard');
-                             }
+                             renderDashboard();
+                             renderInactivityReport();
                         }, 500);
                     } catch (error) {
                         showNotification(`Ocorreu um erro: ${error.message}`, 'error');
