@@ -529,6 +529,11 @@ function renderDashboard() {
     [...state.clients].sort((a,b) => b.totalCompras - a.totalCompras)
         .slice(0,5)
         .forEach(c => topClientsList.innerHTML += `<li>${c.nome}</li>`);
+    
+    // Renderizar Dashboard Financeiro v3.0
+    if (typeof DashboardFinanceiro !== 'undefined' && DashboardFinanceiro.renderDashboardFinanceiro) {
+        DashboardFinanceiro.renderDashboardFinanceiro();
+    }
 }
 
 function renderInactivityReport() {
