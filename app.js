@@ -16,6 +16,9 @@ const state = {
     currentGroupIdToExport: null
 };
 
+// Expor state globalmente para outros módulos acessarem
+window.state = state;
+
 // ==========================================
 // INICIALIZAÇÃO
 // ==========================================
@@ -25,10 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function init() {
     loadDataFromLocalStorage();
+    
+    // Migração: adicionar valorTotal aos clientes existentes se não existir
+    state.clients.forEach(client => {
+        if (typeof client.valorTotal === 'undefined' && typeof client.totalCompras !== 'undefined') {
+            client.valorTotal = client.totalCompras;
+        }
+    });
+    
     cacheDOM();
     setupEventListeners();
     applyTheme();
-    
+
     if (state.clients.length > 0) {
         populateStateFilter();
         populateYearFilter();
@@ -38,11 +49,9 @@ function init() {
     } else {
         navigateTo('upload');
     }
-    
-    DOM.app.style.opacity = '1';
-}
 
-// Cache de elementos DOM
+    DOM.app.style.opacity = '1';
+}// Cache de elementos DOM
 const DOM = {};
 
 function cacheDOM() {
@@ -228,6 +237,7 @@ function processAndMergeData(csvText, filename) {
             if (newPurchaseDate > existingPurchaseDate) {
                 existingClient.dataUltimaCompra = newClient.dataUltimaCompra;
                 existingClient.totalCompras = newClient.totalCompras;
+                existingClient.valorTotal = newClient.totalCompras; // Sincronizar valorTotal
                 wasUpdated = true;
             }
 
@@ -339,6 +349,7 @@ function processCSV(csvText) {
             estado: fieldMappingConfig.estado.index !== -1 ? cleanData(data[fieldMappingConfig.estado.index]) : 'N/A',
             cidade: fieldMappingConfig.cidade.index !== -1 ? cleanData(data[fieldMappingConfig.cidade.index]) : 'N/A',
             totalCompras,
+            valorTotal: totalCompras, // Alias para compatibilidade com dashboard financeiro
             dataUltimaCompra: lastPurchase.toISOString(),
             dataNascimento: dataNascimento ? dataNascimento.toISOString() : null
         };
