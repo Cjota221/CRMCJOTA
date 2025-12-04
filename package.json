@@ -1,0 +1,33 @@
+{
+  "name": "crm-facilzap-supabase",
+  "version": "3.0.0",
+  "description": "CRM com integração FácilZap e Supabase - Sincronização em tempo real",
+  "main": "app.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build needed - static site'",
+    "deploy": "netlify deploy --prod"
+  },
+  "keywords": [
+    "crm",
+    "facilzap",
+    "supabase",
+    "webhook",
+    "realtime"
+  ],
+  "author": "CJota",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cjota221/CRMCJOTA.git"
+  }
+}
