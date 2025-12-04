@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Leve para WhatsApp - Versão Melhorada</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app" style="opacity: 0;">
+        <aside class="sidebar">
+            <h1>CRM Leve</h1>
+            <nav id="main-nav">
+                <a href="#dashboard" class="nav-link" title="Dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#inactivity" class="nav-link" title="Relatório de Inatividade">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Inatividade</span>
+                </a>
+                <a href="#upload" class="nav-link" title="Importar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    <span>Importar</span>
+                </a>
+                <a href="#clients" class="nav-link" title="Clientes">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Clientes</span>
+                </a>
+                <a href="#groups" class="nav-link" title="Grupos">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Grupos</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="reset-data" class="button button-danger" style="width: 100%;">Limpar Dados</button>
+            </div>
+        </aside>
+
+        <div class="page-container">
+            <header class="header">
+                <div class="header-left">
+                    <button id="menu-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <div id="breadcrumb"></div>
+                </div>
+                <div id="global-search-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="search" id="global-search" placeholder="Buscar cliente...">
+                </div>
+                <button id="theme-switcher" title="Mudar tema">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </header>
+
+            <main class="main-content">
+                <!-- Dashboard -->
+                <section id="dashboard-view" class="view">
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
+                                <h3>Total de Clientes</h3>
+                            </div>
+                            <p class="metric" id="db-total-clients">0</p>
+                        </div>
+                         <div class="dashboard-card">
+                            <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                                <div>
+                                    <h3>Clientes Ativos / Inativos</h3>
+                                    <small>Ativos nos últimos 90 dias</small>
+                                </div>
+                            </div>
+                            <p class="metric" id="db-active-inactive">0 / 0</p>
+                        </div>
+                        <div class="dashboard-card">
+                             <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg></div>
+                                <h3>Aniversariantes da Semana</h3>
+                            </div>
+                            <p class="metric" id="db-birthday-week">0</p>
+                            <ul id="db-birthday-list"></ul>
+                        </div>
+                        <div class="dashboard-card">
+                             <div class="dashboard-card-header">
+                                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+                                <h3>Top 5 Clientes (Maior Compra)</h3>
+                            </div>
+                            <ul id="db-top-clients"></ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Inatividade -->
+                <section id="inactivity-view" class="view">
+                     <div class="card">
+                        <div class="card-header">
+                            <h2>Relatório de Inatividade</h2>
+                            <p>Segmente clientes pelo tempo desde a última compra para campanhas de reativação.</p>
+                        </div>
+                        <div class="dashboard-grid" id="inactivity-report-grid"></div>
+                    </div>
+                </section>
+
+                <!-- Upload -->
+                <section id="upload-view" class="view">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Importar Clientes</h2>
+                            <p>Selecione um arquivo .CSV para adicionar novos clientes à sua base de dados.</p>
+                        </div>
+                        <div id="upload-box" class="upload-box" style="cursor: pointer;">
+                            <input type="file" id="csv-file-input" accept=".csv">
+                            <h3>Clique ou arraste o arquivo aqui</h3>
+                            <p>O sistema identifica contatos duplicados e atualiza com os dados mais recentes.</p>
+                        </div>
+                         <div id="loading-spinner" style="display: none; text-align: center; margin-top: 1rem;">
+                            <p>Processando, por favor aguarde...</p>
+                        </div>
+                    </div>
+
+                    <div id="import-history-container" class="card">
+                        <div class="card-header">
+                             <h2>Histórico de Importações</h2>
+                             <p>Arquivos que já foram processados pelo sistema.</p>
+                        </div>
+                        <ul id="import-history-list"></ul>
+                         <button id="sync-data-btn" class="button" style="margin-top: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            Sincronizar Dados dos Clientes
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Clientes -->
+                <section id="clients-view" class="view">
+                    <div class="card">
+                        <div class="card-header"><h2>Painel de Clientes</h2></div>
+                        
+                        <!-- Filtros -->
+                        <div class="filters-grid">
+                            <div class="form-group">
+                                <label for="sort-by">Ordenar por</label>
+                                <select id="sort-by" class="form-control">
+                                    <option value="total_desc">Maior Compra</option>
+                                    <option value="total_asc">Menor Compra</option>
+                                    <option value="inactive_desc">Mais Inativos</option>
+                                    <option value="inactive_asc">Menos Inativos</option>
+                                    <option value="favorites">Favoritos</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-state">Filtrar por Estado</label>
+                                <select id="filter-state" class="form-control"><option value="">Todos</option></select>
+                            </div>
+                             <div class="form-group">
+                                <label for="filter-min-purchase">Valor Mínimo Compra</label>
+                                <input type="number" id="filter-min-purchase" class="form-control" placeholder="Ex: 3000">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-max-purchase">Valor Máximo Compra</label>
+                                <input type="number" id="filter-max-purchase" class="form-control" placeholder="Ex: 200">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-inactivity">Inativos há (dias)</label>
+                                <input type="number" id="filter-inactivity" class="form-control" placeholder="Ex: 90">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-birthday-month">Aniversário (Mês)</label>
+                                <select id="filter-birthday-month" class="form-control">
+                                    <option value="">Todos</option><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-last-purchase-year">Ano da Compra</label>
+                                <select id="filter-last-purchase-year" class="form-control"><option value="">Todos</option></select>
+                            </div>
+                            <div class="form-group">
+                                 <button id="apply-filters" class="button" style="width:100%;">Aplicar Filtros</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <button id="create-group-btn" class="button" disabled>Criar Grupo com Filtro</button>
+                            <button id="create-group-selection-btn" class="button" style="display: none;"></button>
+                            <button id="filter-today-birthday-btn" class="button button-secondary">Aniversariantes de Hoje</button>
+                        </div>
+                        
+                        <!-- Painel de Seleção e Exportação -->
+                        <div class="selection-panel">
+                            <div class="selection-info">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="select-all-page">
+                                    <span>Selecionar todos na página (<span id="page-count">0</span>)</span>
+                                </label>
+                                <button id="select-all-filtered-btn" class="button button-secondary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    Selecionar Todos Filtrados (<span id="filtered-total">0</span>)
+                                </button>
+                                <button id="clear-selection-btn" class="button button-secondary" style="display: none;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    Limpar Seleção
+                                </button>
+                            </div>
+                            
+                            <div class="export-actions" id="export-actions" style="display: none;">
+                                <p class="selection-count"><strong id="selected-count">0</strong> cliente(s) selecionado(s)</p>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button id="export-whatsapp-btn" class="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                        Exportar WhatsApp
+                                    </button>
+                                    <button id="export-email-btn" class="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                        Exportar E-mail
+                                    </button>
+                                    <button id="export-both-btn" class="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        Exportar Completo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p id="filtered-count" style="margin: 1rem 0; color: var(--secondary-color);"></p>
+
+                        <div class="table-responsive">
+                            <table id="clients-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;"></th>
+                                        <th style="width: 50px;"></th>
+                                        <th>Nome</th>
+                                        <th>WhatsApp</th>
+                                        <th>E-mail</th>
+                                        <th>Localização</th>
+                                        <th>Última Compra</th>
+                                        <th>Data Nasc.</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="pagination" id="pagination-controls"></div>
+                    </div>
+                </section>
+                
+                <!-- Grupos -->
+                <section id="groups-view" class="view">
+                    <div class="card">
+                         <div class="card-header"><h2>Grupos de Clientes</h2></div>
+                        <div id="group-list"></div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="create-group-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Criar Novo Grupo</h3><button class="modal-close">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="group-name">Nome do Grupo</label>
+                    <input type="text" id="group-name" class="form-control" placeholder="Ex: Clientes Inativos SP">
+                    <p style="margin-top: 0.5rem; color: var(--secondary-color);">
+                        Este grupo conterá <strong id="group-client-count">0</strong> clientes.
+                    </p>
+                </div>
+                <button id="save-group-btn" class="button">Salvar Grupo</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="rename-group-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Renomear Grupo</h3><button class="modal-close">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="rename-group-name">Novo nome do Grupo</label>
+                    <input type="text" id="rename-group-name" class="form-control">
+                    <input type="hidden" id="rename-group-id">
+                </div>
+                <button id="rename-group-save-btn" class="button">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="view-group-modal" class="modal-overlay">
+        <div class="modal-content modal-content-large">
+            <div class="modal-header"><h3 id="view-group-name"></h3><button class="modal-close">&times;</button></div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table id="group-clients-table">
+                        <thead><tr><th>Nome</th><th>WhatsApp</th><th>E-mail</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                    <button id="export-group-whatsapp-btn" class="button">Exportar WhatsApp</button>
+                    <button id="export-group-email-btn" class="button">Exportar E-mail</button>
+                    <button id="export-group-both-btn" class="button">Exportar Completo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="view-client-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header"><h3 id="client-detail-name"></h3><button class="modal-close">&times;</button></div>
+            <div class="modal-body">
+                <div class="client-details-grid">
+                    <p><strong>WhatsApp:</strong> <span id="client-detail-whatsapp"></span></p>
+                    <p><strong>E-mail:</strong> <span id="client-detail-email"></span></p>
+                    <p><strong>CPF:</strong> <span id="client-detail-cpf"></span></p>
+                    <p><strong>Endereço:</strong> <span id="client-detail-endereco"></span></p>
+                    <p><strong>Cidade:</strong> <span id="client-detail-cidade"></span></p>
+                    <p><strong>Estado:</strong> <span id="client-detail-estado"></span></p>
+                    <p><strong>Data de Nascimento:</strong> <span id="client-detail-nascimento"></span></p>
+                    <p><strong>Última Compra:</strong> <span id="client-detail-ultima-compra"></span></p>
+                    <p><strong>Total Comprado:</strong> <span id="client-detail-total-comprado"></span></p>
+                </div>
+                <div id="client-notes-section">
+                    <h3>Histórico e Observações</h3>
+                    <div id="client-detail-notes-list"></div>
+                    <div class="form-group">
+                        <label for="client-note-input">Adicionar Observação</label>
+                        <textarea id="client-note-input" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button id="save-client-note-btn" class="button">Salvar Observação</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu">
+        <ul>
+            <li id="ctx-whatsapp"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg><span>WhatsApp</span></li>
+            <li id="ctx-email"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><span>Enviar E-mail</span></li>
+            <li id="ctx-details"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Ver Detalhes</span></li>
+        </ul>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
